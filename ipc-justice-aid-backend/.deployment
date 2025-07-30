@@ -1,0 +1,7 @@
+# Azure Web App Deployment Configuration
+# Place this file at the root of your repository for Azure App Service deployment
+
+[config]
+command = bash startup.sh
+SCM_DO_BUILD_DURING_DEPLOYMENT=true
+DEPLOYMENT_BRANCH=main

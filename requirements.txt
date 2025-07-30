@@ -1,0 +1,5 @@
+# This is the root requirements.txt for Azure App Service deployment
+# Azure Oryx will use this to detect and build the Python application
+
+# Include all requirements from the backend directory
+-r aarogyarekha-backend/requirements.txt
