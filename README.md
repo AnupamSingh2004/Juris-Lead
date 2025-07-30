@@ -1,309 +1,232 @@
-### 🎯 Mission
+# IPC Justice Aid 🏛️⚖️
 
-IPC Justice Aid democratizes access to justice by:
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Django](https://img.shields.io/badge/Django-092E20?style=flat&logo=django&logoColor=white)](https://djangoproject.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com/)
+[![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=flat&logo=google&logoColor=white)](https://developers.google.com/identity)
 
-- **Empowering Citizens**: Free AI-powered analysis of legal incidents under the Indian Penal Code
-- **Connecting Legal Professionals**: Streamlined lead generation with pre-screened, structured case summaries
-- **Bridging the Gap**: Eliminating confusion and inefficiencies in the legal consultation process
+> **Democratizing access to justice through AI-powered legal assistance**
+
+A comprehensive legal-tech platform that bridges the gap between citizens in legal distress and legal professionals. IPC Justice Aid provides free AI-powered legal analysis under the Indian Penal Code while creating efficient lead generation for lawyers.
+
+## 🌟 Features
+
+### For Citizens (Free Platform)
+- 🤖 **AI-Powered Legal Analysis** - Analyze incidents under Indian Penal Code
+- 📄 **Structured Case Reports** - Generate professional legal summaries
+- 🔒 **Anonymous Consultation** - Privacy-focused legal guidance
+- 📧 **Direct Lawyer Connect** - Connect with pre-vetted legal professionals
+- 📱 **Cross-Platform Access** - Web and mobile applications
+
+### For Legal Professionals (Subscription Dashboard)
+- 🎯 **Pre-Screened Leads** - Quality-filtered case opportunities
+- 🗂️ **Advanced Filtering** - Filter by IPC sections, location, keywords
+- 📊 **Lead Management** - Track and manage client interactions
+- 💼 **Multi-Tier Subscriptions** - Flexible pricing for different practice sizes
+- 🏥 **Pro-Bono Support** - Free tier for legal aid organizations
 
 ## 🏗️ Architecture
 
-This project consists of three main components:
-
 ```
-├── backend/           # Django REST API + AI Integration (Docker)
-├── web-frontend/      # Next.js Web Application
-└── frontend/          # Flutter Mobile Application
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Next.js Web   │    │  Flutter Mobile │    │  Django Backend │
+│    Frontend     │◄──►│   Application   │◄──►│   + REST API    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │   Docker        │
+                    │   Container     │
+                    └─────────────────┘
 ```
 
-### 📱 Two-Sided Platform
+## 🛠️ Tech Stack
 
-#### **Citizen Platform** (Free)
-- Anonymous incident analysis
-- Structured legal reports
-- Lawyer connection portal
-- Downloadable PDF summaries
+### Frontend
+- ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white) **Next.js** - Modern React framework for web application
+- ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat&logo=flutter&logoColor=white) **Flutter** - Cross-platform mobile application
+- ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB) **React** - Component-based UI library
+- ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white) **TypeScript** - Type-safe development
+- ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white) **Tailwind CSS** - Utility-first styling
 
-#### **Professional Dashboard** (Subscription-based)
-- Real-time case leads
-- Advanced filtering by IPC sections
-- Secure contact system
-- Lead management tools
+### Backend
+- ![Django](https://img.shields.io/badge/Django-092E20?style=flat&logo=django&logoColor=white) **Django** - Python web framework
+- ![Django REST](https://img.shields.io/badge/Django_REST-ff1709?style=flat&logo=django&logoColor=white) **Django REST Framework** - API development
+- ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white) **PostgreSQL** - Primary database
+- ![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white) **Redis** - Caching and session management
+
+### AI & Integration
+- ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=flat&logo=openai&logoColor=white) **OpenAI GPT-4** - Legal analysis AI
+- ![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=flat&logo=google&logoColor=white) **Google OAuth** - Authentication system
+
+### DevOps & Deployment
+- ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) **Docker** - Containerization
+- ![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=flat&logo=docker&logoColor=white) **Docker Compose** - Multi-container orchestration
+- ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&logo=github-actions&logoColor=white) **GitHub Actions** - CI/CD pipeline
+- ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat&logo=amazon-aws&logoColor=white) **AWS** - Cloud deployment
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+- ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) Docker & Docker Compose
+- ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=flat&logo=node.js&logoColor=white) Node.js 18+
+- ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white) Python 3.11+
+- ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat&logo=flutter&logoColor=white) Flutter SDK
 
-- **Backend**: Docker & Docker Compose
-- **Web Frontend**: Node.js 18+, Next.js 14+
-- **Mobile App**: Flutter 3.0+, Dart SDK
-- **AI Services**: OpenAI API key or Claude API key
+### Installation
 
-### 🔧 Installation
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/ipc-justice-aid.git
+   cd ipc-justice-aid
+   ```
 
-#### 1. Clone the Repository
+2. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   # Configure your environment variables
+   ```
 
-```bash
-git clone https://github.com/your-username/ipc-justice-aid.git
-cd ipc-justice-aid
-```
+3. **Run with Docker Compose**
+   ```bash
+   docker-compose up --build
+   ```
 
-#### 2. Backend Setup (Django with Docker)
+4. **Access the applications**
+   - Web Frontend: http://localhost:3000
+   - API Documentation: http://localhost:8000/api/docs/
+   - Admin Panel: http://localhost:8000/admin/
 
+### Development Setup
+
+#### Backend (Django)
 ```bash
 cd backend
-
-# Environment setup
-cp .env.example .env
-# Edit .env with your configuration
-
-# Build and run with Docker Compose
-docker-compose up --build
-
-# Run migrations (in a new terminal)
-docker-compose exec web python manage.py makemigrations
-docker-compose exec web python manage.py migrate
-docker-compose exec web python manage.py createsuperuser
-
-# Backend will be available at http://localhost:8000
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
 ```
 
-#### 3. Web Frontend Setup (Next.js)
-
+#### Web Frontend (Next.js)
 ```bash
-cd web-frontend
-
-# Install dependencies
+cd frontend/web
 npm install
-
-# Environment setup
-cp .env.local.example .env.local
-# Edit .env.local with your configuration
-
-# Run development server
 npm run dev
 ```
 
-#### 4. Mobile App Setup (Flutter)
-
+#### Mobile App (Flutter)
 ```bash
-cd frontend
-
-# Get dependencies
+cd frontend/mobile
 flutter pub get
-
-# Environment setup
-cp lib/config/env.example.dart lib/config/env.dart
-# Edit env.dart with your configuration
-
-# Run on device/emulator
 flutter run
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Django Settings
+DJANGO_SECRET_KEY=your_secret_key_here
+DJANGO_DEBUG=True
+DATABASE_URL=postgresql://user:password@localhost:5432/ipc_justice_aid
+
+# AI Services
+OPENAI_API_KEY=your_openai_api_key
+CLAUDE_API_KEY=your_claude_api_key
+
+# Google OAuth
+GOOGLE_OAUTH_CLIENT_ID=your_google_client_id
+GOOGLE_OAUTH_CLIENT_SECRET=your_google_client_secret
+
+# Email Configuration
+EMAIL_HOST=smtp.gmail.com
+EMAIL_HOST_USER=your_email@gmail.com
+EMAIL_HOST_PASSWORD=your_app_password
+
+# Payment Gateway
+STRIPE_PUBLISHABLE_KEY=your_stripe_public_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_secret
 ```
 
 ## 📁 Project Structure
 
-### Backend (Django - Dockerized)
-
 ```
-backend/
-├── core/                 # Core Django settings
-├── apps/
-│   ├── authentication/   # User management & JWT
-│   ├── ai_analysis/      # AI incident analysis
-│   ├── case_management/  # Case leads & matching
-│   ├── lawyer_dashboard/ # Professional features
-│   └── notifications/    # Email & messaging
-├── utils/               # Shared utilities
-├── requirements.txt
-├── Dockerfile
+ipc-justice-aid/
+├── backend/                    # Django backend
+│   ├── apps/
+│   │   ├── accounts/          # User management
+│   │   ├── legal_analysis/    # AI legal analysis
+│   │   ├── leads/            # Lead management
+│   │   └── subscriptions/     # Payment handling
+│   ├── config/               # Django configuration
+│   └── requirements.txt
+├── frontend/
+│   ├── web/                  # Next.js web application
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── styles/
+│   │   └── package.json
+│   └── mobile/               # Flutter mobile app
+│       ├── lib/
+│       ├── android/
+│       ├── ios/
+│       └── pubspec.yaml
 ├── docker-compose.yml
-└── manage.py
+├── Dockerfile
+├── .env.example
+└── README.md
 ```
-
-### Web Frontend (Next.js)
-
-```
-web-frontend/
-├── src/
-│   ├── app/             # App Router pages
-│   ├── components/      # Reusable UI components
-│   ├── lib/            # Utilities & API calls
-│   ├── hooks/          # Custom React hooks
-│   └── types/          # TypeScript definitions
-├── public/             # Static assets
-└── package.json
-```
-
-### Mobile App (Flutter)
-
-```
-frontend/
-├── lib/
-│   ├── core/           # Core utilities & constants
-│   ├── features/       # Feature-based modules
-│   │   ├── analysis/   # Incident analysis
-│   │   ├── auth/       # Authentication
-│   │   └── dashboard/  # Lawyer dashboard
-│   ├── shared/         # Shared widgets & services
-│   └── main.dart
-└── pubspec.yaml
-```
-
-## 🔗 API Endpoints
-
-### Public Endpoints
-
-- `POST /api/analyze/` - Analyze legal incident
-- `POST /api/lawyer-connect/` - Submit lawyer connection request
-- `GET /api/download-pdf/{case_id}/` - Download case summary PDF
-
-### Protected Endpoints (Lawyers)
-
-- `GET /api/dashboard/leads/` - Get case leads
-- `POST /api/dashboard/express-interest/` - Express interest in case
-- `GET /api/dashboard/analytics/` - Get dashboard analytics
 
 ## 🧪 Testing
 
 ### Backend Tests
-
 ```bash
 cd backend
-# Run tests inside Docker container
-docker-compose exec web python manage.py test
-
-# Or run specific test modules
-docker-compose exec web python manage.py test apps.ai_analysis.tests
+python manage.py test
 ```
 
 ### Frontend Tests
-
 ```bash
-cd web-frontend
+cd frontend/web
 npm run test
 ```
 
 ### Mobile Tests
-
 ```bash
-cd frontend
+cd frontend/mobile
 flutter test
 ```
 
-## 🚀 Deployment
+## 📊 API Documentation
 
-### Backend (Django with Docker)
+The API is documented using Django REST Framework's built-in documentation. After running the server, visit:
+- Swagger UI: `http://localhost:8000/api/docs/`
+- ReDoc: `http://localhost:8000/api/redoc/`
 
-```bash
-# Production deployment
-docker-compose -f docker-compose.prod.yml up --build -d
+### Key Endpoints
 
-# Or build and push to registry
-docker build -t ipc-justice-aid-backend .
-docker tag ipc-justice-aid-backend your-registry/ipc-justice-aid-backend:latest
-docker push your-registry/ipc-justice-aid-backend:latest
-```
-
-### Web Frontend (Next.js)
-
-```bash
-# Build for production
-npm run build
-npm start
-
-# Or deploy to Vercel
-vercel deploy
-```
-
-### Mobile App (Flutter)
-
-```bash
-cd frontend
-
-# Build APK for Android
-flutter build apk --release
-
-# Build for iOS
-flutter build ios --release
-```
-
-## 🔐 Environment Variables
-
-### Backend (.env)
-
-```env
-# Django Configuration
-SECRET_KEY=your-django-secret-key
-DEBUG=False
-ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
-
-# Database (handled by docker-compose)
-DATABASE_URL=postgresql://postgres:password@db:5432/ipc_justice_aid
-
-# AI Services
-OPENAI_API_KEY=your-openai-api-key
-CLAUDE_API_KEY=your-claude-api-key
-
-# Email Configuration
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
-
-# Payment Gateway
-STRIPE_PUBLIC_KEY=your-stripe-public-key
-STRIPE_SECRET_KEY=your-stripe-secret-key
-
-# Redis (for caching and celery)
-REDIS_URL=redis://redis:6379/0
-```
-
-### Web Frontend (.env.local)
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your-stripe-public-key
-```
-
-### Mobile App (lib/config/env.dart)
-
-```dart
-class Environment {
-  static const String apiUrl = 'http://localhost:8000/api';
-  static const String stripePublishableKey = 'your-stripe-public-key';
-}
-```
-
-## 📋 Development Roadmap
-
-### Phase 1: Core Platform (Current)
-- [x] AI incident analysis
-- [x] Basic lawyer dashboard
-- [x] PDF report generation
-- [ ] Payment integration
-- [ ] Email notifications
-
-### Phase 2: Enhanced Features
-- [ ] Document upload analysis
-- [ ] Advanced filtering
-- [ ] Analytics dashboard
-- [ ] Mobile app optimization
-
-### Phase 3: Expansion
-- [ ] Multi-language support
-- [ ] Integration with legal databases
-- [ ] API for third-party integrations
-- [ ] International expansion
+- `POST /api/v1/legal-analysis/` - Analyze legal incidents
+- `GET /api/v1/leads/` - Fetch leads for lawyers
+- `POST /api/v1/auth/google/` - Google OAuth authentication
+- `POST /api/v1/subscriptions/` - Manage subscriptions
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Workflow
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
@@ -311,42 +234,26 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
-
-- **Documentation**: [Wiki](https://github.com/your-username/ipc-justice-aid/wiki)
-- **Issues**: [GitHub Issues](https://github.com/your-username/ipc-justice-aid/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/ipc-justice-aid/discussions)
-
-## 👥 Team
-
-- **Project Lead**: [Your Name](https://github.com/your-username)
-- **Backend Developer**: [Name](https://github.com/username)
-- **Frontend Developer**: [Name](https://github.com/username)
-- **Mobile Developer**: [Name](https://github.com/username)
-
 ## 🙏 Acknowledgments
 
 - Indian Penal Code legal framework
-- OpenAI/Anthropic for AI capabilities
 - Open source community
-- Legal professionals who provided guidance
+- Legal professionals providing guidance
+- AI technology providers
+
+## 📞 Support
+
+- 📧 Email: support@ipc-justice-aid.com
+- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/ipc-justice-aid/issues)
+- 📖 Documentation: [Wiki](https://github.com/yourusername/ipc-justice-aid/wiki)
 
 ---
 
-**⚖️ Making Justice Accessible for Everyone**# IPC Justice Aid 🏛️⚖️
-
-**Democratizing Access to Justice through AI-Powered Legal Analysis**
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Next.js](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org/)
-[![Flutter](https://img.shields.io/badge/Flutter-3.0+-blue.svg)](https://flutter.dev/)
-[![Django](https://img.shields.io/badge/Django-4.2+-green.svg)](https://www.djangoproject.com/)
-
-## 📖 Overview
-
-IPC Justice Aid is a legal-tech SaaS platform that bridges the gap between citizens facing legal challenges and legal professionals. Our AI-powered system analyzes incidents under the Indian Penal Code (IPC) and connects users with qualified lawyers through structured case summaries and lead generation.
-
-### 🎯 Mission
-
-IPC Justice Aid democratizes access to justice by:
+<div align="center">
+  <p>Made with ❤️ for accessible justice</p>
+  <p>
+    <a href="#top">Back to top</a> •
+    <a href="https://github.com/yourusername/ipc-justice-aid/issues">Report Bug</a> •
+    <a href="https://github.com/yourusername/ipc-justice-aid/issues">Request Feature</a>
+  </p>
+</div>
