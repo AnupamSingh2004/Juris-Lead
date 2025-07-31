@@ -16,7 +16,7 @@ class _StoresScreenState extends State<StoresScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         title: const Text(
-          'Medical Stores',
+          'Legal Services',
           style: TextStyle(
             color: Color(0xFF1E293B),
             fontWeight: FontWeight.w600,
@@ -83,17 +83,17 @@ class _StoresScreenState extends State<StoresScreen> {
                 children: [
                   _buildFilterChip('All', true),
                   _buildFilterChip('Nearby', false),
-                  _buildFilterChip('24/7 Open', false),
-                  _buildFilterChip('Home Delivery', false),
-                  _buildFilterChip('Prescription', false),
+                  _buildFilterChip('24/7 Available', false),
+                  _buildFilterChip('Free Consultation', false),
+                  _buildFilterChip('Legal Aid', false),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Featured Stores
+            // Featured Services
             const Text(
-              'Featured Stores',
+              'Featured Legal Services',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -102,44 +102,44 @@ class _StoresScreenState extends State<StoresScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Store Cards
+            // Service Cards
             _buildStoreCard(
-              'Apollo Pharmacy',
+              'Legal Aid Society',
               '0.8 km away • Open 24/7',
-              'Up to 20% off on medicines',
+              'Free legal consultation for citizens',
               '4.5',
               '1,234',
-              Icons.local_pharmacy,
+              Icons.gavel,
               const Color(0xFF2563EB),
             ),
             const SizedBox(height: 16),
             _buildStoreCard(
-              'MedPlus',
-              '1.2 km away • Closes at 10 PM',
-              'Free delivery on orders above ₹500',
+              'District Legal Services',
+              '1.2 km away • Closes at 6 PM',
+              'Government legal aid and support',
               '4.3',
               '987',
-              Icons.medical_services,
+              Icons.account_balance,
               const Color(0xFF059669),
             ),
             const SizedBox(height: 16),
             _buildStoreCard(
-              'Wellness Forever',
-              '2.1 km away • Open 24/7',
-              'Buy 2 Get 1 Free on selected items',
+              'Advocates Chamber',
+              '2.1 km away • By Appointment',
+              'Experienced criminal and civil lawyers',
               '4.4',
               '756',
-              Icons.health_and_safety,
+              Icons.business_center,
               const Color(0xFFDC2626),
             ),
             const SizedBox(height: 16),
             _buildStoreCard(
-              'Local Medical Store',
-              '0.5 km away • Closes at 9 PM',
-              'Best prices in the area',
+              'Local Legal Clinic',
+              '0.5 km away • Closes at 5 PM',
+              'Affordable legal consultation',
               '4.2',
               '432',
-              Icons.store,
+              Icons.local_library,
               const Color(0xFF7C3AED),
             ),
             const SizedBox(height: 100), // Extra padding for bottom navbar

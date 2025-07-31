@@ -1,4 +1,4 @@
-package com.aarogyarekha.app
+package com.jurislead.app
 
 import io.flutter.embedding.android.FlutterActivity
 

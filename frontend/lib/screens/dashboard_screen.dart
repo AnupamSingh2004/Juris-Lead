@@ -63,7 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(width: 12),
             const Text(
-              'AarogyaRekha',
+              'Juris-Lead',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -72,7 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF2E7D8A),
+        backgroundColor: const Color(0xFF1565C0), // Legal blue
         elevation: 0,
         actions: [
           // Satellite Status Indicator

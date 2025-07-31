@@ -176,7 +176,7 @@ class _MainNavigationState extends State<MainNavigation> {
       children: [
         _buildMenuItem(Icons.person, 'Profile', () {
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => ProfileScreen(userType: widget.userType),
+            builder: (context) => const ProfileScreen(),
           ));
         }),
         _buildMenuItem(Icons.settings, 'Settings', () {

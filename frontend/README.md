@@ -1,10 +1,10 @@
-# AarogyaRekha Mobile App 📱
+# Juris-Lead Mobile App 📱
 
 <div align="center">
-  <img src="../screenshots/mobile-app/dashboard.png" alt="AarogyaRekha Dashboard" width="300"/>
+  <img src="../screenshots/mobile-app/dashboard.png" alt="Juris-Lead Dashboard" width="300"/>
 </div>
 
-**AarogyaRekha** - Your AI-powered health companion that predicts and prevents disease outbreaks before they happen.
+**Juris-Lead** - Your AI-powered legal analysis platform that helps understand Indian Penal Code sections and provides legal guidance.
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.8.1-blue.svg)](https://flutter.dev/)
 [![Dart](https://img.shields.io/badge/Dart-3.8.1-blue.svg)](https://dart.dev/)
@@ -12,12 +12,12 @@
 
 ## 🌟 Features
 
-### 🤖 AI-Powered Health Assistant
-- **Multilingual AI Chatbot** powered by Google Gemini
-- **Personalized health recommendations** based on location and symptoms
-- **24/7 health query support** in multiple Indian languages
+### ⚖️ AI-Powered Legal Assistant
+- **Multilingual Legal Chatbot** powered by custom IPC-Helper AI
+- **Personalized IPC analysis** based on case descriptions
+- **24/7 legal guidance support** in multiple Indian languages
 
-### 📊 Disease Prediction & Alerts
+### 📊 Legal Case Analysis & IPC Identification
 - **Real-time risk assessment** for malaria, dengue, diarrhea, and malnutrition
 - **Location-based alerts** with village-level granularity
 - **Smart notifications** with color-coded risk zones (Green/Yellow/Red)

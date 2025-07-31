@@ -1,0 +1,41 @@
+{
+  "applicable_ipc_sections": [
+    {
+      "section_number": "302",
+      "section_title": "Murder",
+      "description": "Whoever commits murder shall be punished with death, or imprisonment for life, and shall also be liable to fine.",
+      "why_applicable": "This section applies because the case involves causing death of a person through a criminal act.",
+      "punishment": "Death or life imprisonment and fine"
+    },
+    {
+      "section_number": "304A",
+      "section_title": "Causing death by negligence",
+      "description": "Whoever causes the death of any person by doing any rash or negligent act not amounting to culpable homicide shall be punished with imprisonment of either description for a term which may extend to two years, or with fine, or with both.",
+      "why_applicable": "This section may apply if the death was caused by rash or negligent driving.",
+      "punishment": "Imprisonment up to 2 years or fine or both"
+    },
+    {
+      "section_number": "279",
+      "section_title": "Rash driving or riding on a public way",
+      "description": "Whoever drives any vehicle, or rides, on any public way in a manner so rash or negligent as to endanger human life, or to be likely to cause hurt or injury to any other person, shall be punished with imprisonment of either description for a term which may extend to six months, or with fine which may extend to one thousand rupees, or with both.",
+      "why_applicable": "This section applies to rash or negligent driving that endangers human life.",
+      "punishment": "Imprisonment up to 6 months or fine up to ₹1000 or both"
+    },
+    {
+      "section_number": "185",
+      "section_title": "Motor Vehicle Act - Driving under influence",
+      "description": "Whoever, while driving a motor vehicle, has in his blood alcohol exceeding 30 mg per 100 ml of blood detected in a test by a breath analyzer shall be punishable.",
+      "why_applicable": "This section applies because the victim was drunk, and if the driver was also under influence, this would be applicable.",
+      "punishment": "Imprisonment up to 6 months or fine up to ₹2000 for first offense"
+    }
+  ],
+  "case_summary": "This case involves a fatal road accident where a drunk person was hit by a car and died. The applicable sections would depend on whether the death was caused by murder, culpable homicide, or negligent driving. The driver's state (whether under influence or not) and intent would determine the specific charges.",
+  "severity": "High",
+  "case_type": "Criminal",
+  "analysis_timestamp": "2025-07-31T17:25:00Z",
+  "total_sections_identified": 4,
+  "lead_id": null,
+  "lawyer_connect_available": false,
+  "pdf_report_url": null,
+  "note": "Analysis completed by AI legal assistant. Please consult a qualified lawyer for legal advice."
+}

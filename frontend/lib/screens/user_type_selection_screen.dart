@@ -11,8 +11,8 @@ class UserTypeSelectionScreen extends StatelessWidget {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF2E7D8A),
-              Color(0xFF1A5A6B),
+              Color(0xFF1565C0), // Legal blue
+              Color(0xFF0D47A1), // Darker blue
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -52,7 +52,7 @@ class UserTypeSelectionScreen extends StatelessWidget {
                 
                 // App Title
                 const Text(
-                  'AarogyaRekha',
+                  'Juris-Lead',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 32,
@@ -65,7 +65,7 @@ class UserTypeSelectionScreen extends StatelessWidget {
                 
                 // Subtitle
                 const Text(
-                  'Your Digital Health Sentinel',
+                  'Your Legal Analysis Platform',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 16,
@@ -91,34 +91,34 @@ class UserTypeSelectionScreen extends StatelessWidget {
                     children: [
                       _buildUserTypeButton(
                         context,
-                        'ASHA/ANM Worker',
-                        'Field healthcare worker',
-                        Icons.medical_services,
-                        'ASHA',
+                        'Lawyer/Legal Professional',
+                        'Access premium legal tools & dashboard',
+                        Icons.gavel,
+                        'Lawyer',
                       ),
                       const SizedBox(height: 16),
                       _buildUserTypeButton(
                         context,
-                        'PHC/District Official',
-                        'Healthcare administrator',
-                        Icons.local_hospital,
-                        'PHC',
+                        'Citizen/Individual',
+                        'Free legal analysis & consultation',
+                        Icons.person,
+                        'Citizen',
                       ),
                       const SizedBox(height: 16),
                       _buildUserTypeButton(
                         context,
-                        'Rural Household',
-                        'Community member',
-                        Icons.home,
-                        'Rural',
+                        'Law Student',
+                        'Educational resources & case studies',
+                        Icons.school,
+                        'Student',
                       ),
                       const SizedBox(height: 16),
                       _buildUserTypeButton(
                         context,
-                        'Tourist/Traveler',
-                        'Visiting the area',
-                        Icons.travel_explore,
-                        'Tourist',
+                        'Legal Aid Organization',
+                        'Non-profit legal assistance',
+                        Icons.volunteer_activism,
+                        'NGO',
                       ),
                     ],
                   ),
@@ -128,7 +128,7 @@ class UserTypeSelectionScreen extends StatelessWidget {
                 
                 // Footer
                 const Text(
-                  'Drawing the Digital Line Between Health and Disease',
+                  'Bridging the Gap Between Law and Justice',
                   style: TextStyle(
                     color: Colors.white60,
                     fontSize: 12,
@@ -162,7 +162,7 @@ class UserTypeSelectionScreen extends StatelessWidget {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF2E7D8A),
+          foregroundColor: const Color(0xFF1565C0), // Legal blue
           padding: const EdgeInsets.all(20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -175,12 +175,12 @@ class UserTypeSelectionScreen extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: const Color(0xFF2E7D8A).withOpacity(0.1),
+                color: const Color(0xFF1565C0).withOpacity(0.1), // Legal blue with opacity
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Icon(
                 icon,
-                color: const Color(0xFF2E7D8A),
+                color: const Color(0xFF1565C0), // Legal blue
                 size: 24,
               ),
             ),

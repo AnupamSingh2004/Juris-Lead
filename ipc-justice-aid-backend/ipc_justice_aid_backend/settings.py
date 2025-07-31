@@ -56,11 +56,14 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'django_extensions',
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 LOCAL_APPS = [
     'authentication',
     'ipc_analysis',
+    'leads',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -411,15 +414,118 @@ OLLAMA_SETTINGS = {
     'MAX_RETRIES': config('OLLAMA_MAX_RETRIES', default=3, cast=int),
 }
 
+# Add Ollama settings as direct attributes for easier access
+OLLAMA_BASE_URL = OLLAMA_SETTINGS['BASE_URL']
+OLLAMA_MODEL_NAME = OLLAMA_SETTINGS['MODEL_NAME']
+
 # Legal analysis settings
 LEGAL_ANALYSIS_SETTINGS = {
     'MAX_CASE_DESCRIPTION_LENGTH': config('MAX_CASE_DESCRIPTION_LENGTH', default=5000, cast=int),
     'ANALYSIS_HISTORY_RETENTION_DAYS': config('ANALYSIS_HISTORY_RETENTION_DAYS', default=365, cast=int),
-    'ALLOW_ANONYMOUS_ANALYSIS': config('ALLOW_ANONYMOUS_ANALYSIS', default=False, cast=bool),
-    'ENABLE_CASE_SHARING': config('ENABLE_CASE_SHARING', default=False, cast=bool),
+    'ALLOW_ANONYMOUS_ANALYSIS': config('ALLOW_ANONYMOUS_ANALYSIS', default=True, cast=bool),
+    'ENABLE_CASE_SHARING': config('ENABLE_CASE_SHARING', default=True, cast=bool),
 }
 
-# Add Ollama settings as direct attributes for easier access
+# Lead management settings
+LEAD_SETTINGS = {
+    'DEFAULT_LEAD_EXPIRY_DAYS': config('DEFAULT_LEAD_EXPIRY_DAYS', default=30, cast=int),
+    'MAX_LEADS_PER_LAWYER_PER_DAY': config('MAX_LEADS_PER_LAWYER_PER_DAY', default=10, cast=int),
+    'AUTO_ASSIGN_LEADS': config('AUTO_ASSIGN_LEADS', default=True, cast=bool),
+}
+
+# Celery Configuration
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# Celery Beat Schedule
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-expired-leads': {
+        'task': 'leads.tasks.cleanup_expired_leads',
+        'schedule': 3600.0,  # Every hour
+    },
+    'reset-monthly-limits': {
+        'task': 'leads.tasks.reset_monthly_subscription_limits',
+        'schedule': 86400.0 * 30,  # Monthly
+    },
+    'generate-analytics-report': {
+        'task': 'leads.tasks.generate_analytics_report',
+        'schedule': 86400.0,  # Daily
+    },
+    'update-lead-analytics': {
+        'task': 'leads.tasks.update_lead_analytics',
+        'schedule': 1800.0,  # Every 30 minutes
+    },
+}
+
+# Payment Gateway Settings
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID', default='')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET', default='')
+
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+
+# Frontend URL for email links
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Email settings for notifications
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@ipc-justice-aid.com')
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='')
+
+# Additional settings for the Juris-Lead platform
+JURIS_LEAD_SETTINGS = {
+    'ENABLE_PRO_BONO_TIER': config('ENABLE_PRO_BONO_TIER', default=True, cast=bool),
+    'MAX_FREE_ANALYSES_PER_IP': config('MAX_FREE_ANALYSES_PER_IP', default=5, cast=int),
+    'REQUIRE_PHONE_VERIFICATION': config('REQUIRE_PHONE_VERIFICATION', default=False, cast=bool),
+    'ENABLE_PDF_REPORTS': config('ENABLE_PDF_REPORTS', default=True, cast=bool),
+}
 OLLAMA_BASE_URL = OLLAMA_SETTINGS['BASE_URL']
 OLLAMA_MODEL_NAME = OLLAMA_SETTINGS['MODEL_NAME']
 OLLAMA_TIMEOUT = OLLAMA_SETTINGS['TIMEOUT']
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'leads': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'leads.services': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'leads.views': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}

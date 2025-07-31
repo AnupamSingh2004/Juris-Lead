@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Setup Juris-Lead Database",
+			"type": "shell",
+			"command": "cd /home/anupam/code/PRproject/ipc-justice-aid/ipc-justice-aid-backend && python manage.py makemigrations leads && python manage.py migrate",
+			"group": "build",
+			"isBackground": false
+		}
+	]
+}

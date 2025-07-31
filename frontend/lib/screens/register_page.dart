@@ -207,7 +207,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
         // App Name
         const Text(
-          'AarogyaRekha',
+          'Juris-Lead',
           style: TextStyle(
             color: Colors.white,
             fontSize: 28,
@@ -245,7 +245,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 8),
 
         Text(
-          'Join AarogyaRekha today',
+          'Join the legal community',
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
             fontSize: 18,

@@ -14,9 +14,21 @@ def health_check(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # API v1 endpoints
+    path('api/v1/auth/', include('authentication.urls')),
+    path('api/v1/legal/', include('ipc_analysis.urls')),
+    path('api/v1/leads/', include('leads.urls')),
+    
+    # Legacy API endpoints (for backward compatibility)
     path('api/auth/', include('authentication.urls')),
     path('api/legal/', include('ipc_analysis.urls')),
+    
+    # Health check
     path('api/health/', health_check, name='health_check'),
+    path('health/', health_check, name='health_check_root'),
+    
+    # OAuth and social auth
     path('accounts/', include('allauth.urls')),
 ]
 

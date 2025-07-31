@@ -100,16 +100,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateM
 
   String _getWelcomeMessage() {
     switch (widget.userType) {
-      case 'ASHA/ANM':
-        return "🩺 **Welcome, Health Worker!**\n\nI'm AarogyaRekha's AI Assistant, specialized in preventive healthcare. I can help you with:\n\n• Community health screening tips\n• Disease prevention strategies\n• Early warning signs identification\n• Family health education guidance\n\nHow can I assist you today?";
-      case 'PHC/District':
-        return "🏥 **Welcome, Healthcare Official!**\n\nI'm here to support your public health initiatives with:\n\n• Outbreak prevention strategies\n• Resource planning for preventive care\n• Community health campaign guidance\n• Seasonal disease preparation\n\nWhat would you like to know?";
-      case 'Rural':
-        return "🏠 **Welcome to AarogyaRekha!**\n\nI'm your family health assistant, here to help you keep your loved ones healthy with:\n\n• Simple prevention tips\n• Seasonal health advice\n• Child health guidance\n• Safe practices for daily life\n\nWhat health topic can I help you with?";
-      case 'Tourist':
-        return "🧳 **Welcome, Traveler!**\n\nI'm here to help you stay healthy during your journey with:\n\n• Travel health kit essentials\n• Destination-specific health risks\n• Food and water safety tips\n• Preventive measures for common diseases\n\nWhere are you traveling, and how can I help?";
+      case 'Lawyer':
+        return "⚖️ **Welcome, Legal Professional!**\n\nI'm Juris-Lead's AI Assistant, specialized in legal analysis and IPC consultation. I can help you with:\n\n• IPC section identification\n• Legal case analysis\n• Precedent research guidance\n• Client consultation preparation\n\nHow can I assist you today?";
+      case 'Citizen':
+        return "�️ **Welcome to Juris-Lead!**\n\nI'm your legal assistant, here to help you understand your legal rights and IPC sections with:\n\n• Free case analysis\n• IPC section explanations\n• Legal guidance and advice\n• Understanding your rights\n\nWhat legal matter can I help you with?";
+      case 'Student':
+        return "📚 **Welcome, Law Student!**\n\nI'm here to support your legal education with:\n\n• IPC section explanations\n• Case study analysis\n• Legal concept clarification\n• Educational resources\n\nWhat legal topic would you like to explore?";
+      case 'NGO':
+        return "� **Welcome, Legal Aid Professional!**\n\nI'm here to assist your legal aid work with:\n\n• Case analysis for underprivileged clients\n• IPC section guidance\n• Legal aid resource information\n• Community legal education support\n\nHow can I help you serve your community?";
       default:
-        return "🛡️ **Welcome to AarogyaRekha!**\n\nI'm your AI health assistant focused on disease prevention. I can help you with preventive measures, health tips, and early warning signs.\n\nWhat would you like to know about staying healthy?";
+        return "� **Welcome to Juris-Lead!**\n\nI'm your AI legal assistant focused on Indian Penal Code analysis. I can help you understand legal implications, IPC sections, and provide preliminary legal guidance.\n\nWhat legal question can I help you with?";
     }
   }
 
@@ -205,7 +205,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateM
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text(
-          'AarogyaRekha AI Assistant',
+          'Juris-Lead AI Assistant',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -270,7 +270,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateM
           ),
           const SizedBox(height: 20),
           const Text(
-            'AarogyaRekha AI Assistant',
+            'Juris-Lead AI Assistant',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -584,10 +584,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> with TickerProviderStateM
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('AarogyaRekha AI Assistant'),
+        title: const Text('Juris-Lead AI Assistant'),
         content: const Text(
-          'This AI assistant provides preventive healthcare guidance based on your user type. '
-          'It focuses on disease prevention, early warning signs, and health education.\n\n'
+          'This AI assistant provides legal guidance and IPC analysis based on your user type. '
+          'It focuses on legal case analysis, IPC section identification, and legal education.\n\n'
           'Note: This is not a replacement for professional medical advice. '
           'Always consult healthcare providers for diagnosis and treatment.',
         ),

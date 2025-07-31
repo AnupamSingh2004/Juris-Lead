@@ -16,35 +16,6 @@ services:
     networks:
       - ipc_justice_aid_network
 
-  web:
-    build: .
-    container_name: ipc_justice_aid_web
-    restart: always
-    volumes:
-      - .:/app
-      - static_volume:/app/static
-      - media_volume:/app/media
-    ports:
-      - "8001:8000"
-    depends_on:
-      - db
-      - redis
-      - ollama
-    environment:
-      - DEBUG=${DEBUG:-True}
-      - SECRET_KEY=${SECRET_KEY:-ipc-justice-aid-secret-key}
-      - DATABASE_NAME=${DATABASE_NAME:-ipc_justice_aid}
-      - DATABASE_USER=${DATABASE_USER:-ipc_user}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ipc_password}
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
-      - OLLAMA_MODEL_NAME=${OLLAMA_MODEL_NAME:-Anupam/IPC-Helper:latest}
-    env_file:
-      - .env
-    networks:
-      - ipc_justice_aid_network
-
   redis:
     image: redis:7-alpine
     container_name: ipc_justice_aid_redis
@@ -67,6 +38,104 @@ services:
       - /home/anupam/.ollama:/host_ollama:ro
     networks:
       - ipc_justice_aid_network
+    # Uncomment the deploy section if you have NVIDIA GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  web:
+    build: .
+    container_name: ipc_justice_aid_web
+    restart: always
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+      - redis
+      - ollama
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-ipc-justice-aid-secret-key}
+      - DATABASE_NAME=${DATABASE_NAME:-ipc_justice_aid}
+      - DATABASE_USER=${DATABASE_USER:-ipc_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ipc_password}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_MODEL_NAME=${OLLAMA_MODEL_NAME:-Anupam/IPC-Helper:latest}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-300}
+      - OLLAMA_MAX_RETRIES=${OLLAMA_MAX_RETRIES:-2}
+    env_file:
+      - .env
+    networks:
+      - ipc_justice_aid_network
+
+  celery_worker:
+    build: .
+    container_name: ipc_justice_aid_celery_worker
+    restart: always
+    command: celery -A ipc_justice_aid_backend worker --loglevel=info
+    volumes:
+      - .:/app
+      - media_volume:/app/media
+    depends_on:
+      - db
+      - redis
+      - web
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-ipc-justice-aid-secret-key}
+      - DATABASE_NAME=${DATABASE_NAME:-ipc_justice_aid}
+      - DATABASE_USER=${DATABASE_USER:-ipc_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ipc_password}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_MODEL_NAME=${OLLAMA_MODEL_NAME:-Anupam/IPC-Helper:latest}
+    env_file:
+      - .env
+    networks:
+      - ipc_justice_aid_network
+
+  celery_beat:
+    build: .
+    container_name: ipc_justice_aid_celery_beat
+    restart: always
+    command: celery -A ipc_justice_aid_backend beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - web
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-ipc-justice-aid-secret-key}
+      - DATABASE_NAME=${DATABASE_NAME:-ipc_justice_aid}
+      - DATABASE_USER=${DATABASE_USER:-ipc_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ipc_password}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - .env
+ 
     # Uncomment the deploy section if you have NVIDIA GPU support
     # deploy:
     #   resources:

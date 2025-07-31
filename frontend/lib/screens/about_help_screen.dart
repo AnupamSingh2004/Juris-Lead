@@ -15,7 +15,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('About & Help'),
-        backgroundColor: const Color(0xFF2E7D8A),
+        backgroundColor: const Color(0xFF1565C0), // Legal blue
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -60,7 +60,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF2E7D8A) : Colors.grey[200],
+          color: isSelected ? const Color(0xFF1565C0) : Colors.grey[200], // Legal blue
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
@@ -155,11 +155,11 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
           const SizedBox(height: 16),
           
           const Text(
-            'AarogyaRekha',
+            'Juris-Lead',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D8A),
+              color: Color(0xFF1565C0), // Legal blue
             ),
           ),
           const SizedBox(height: 8),
@@ -174,7 +174,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
           const SizedBox(height: 8),
           
           const Text(
-            'Drawing the Digital Line Between Health and Disease',
+            'Bridging the Gap Between Law and Justice',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey,
@@ -205,17 +205,17 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'About AarogyaRekha',
+            'About Juris-Lead',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D8A),
+              color: Color(0xFF1565C0), // Legal blue
             ),
           ),
           const SizedBox(height: 12),
           
           const Text(
-            'AarogyaRekha is an AI-powered preventive healthcare system that predicts and alerts communities about potential disease outbreaks like malaria, dengue, diarrhea, and malnutrition — even before symptoms occur.',
+            'Juris-Lead is an AI-powered legal analysis platform that helps citizens understand Indian Penal Code (IPC) sections applicable to their legal situations. Our platform provides free legal case analysis for citizens and premium tools for legal professionals.',
             style: TextStyle(
               fontSize: 14,
               height: 1.5,
@@ -228,13 +228,13 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D8A),
+              color: Color(0xFF1565C0), // Legal blue
             ),
           ),
           const SizedBox(height: 8),
           
           const Text(
-            'To prevent disease outbreaks by using satellite data, AI, and community engagement to create a proactive healthcare system that protects communities before diseases can spread.',
+            'To democratize access to legal knowledge by providing AI-powered IPC analysis that helps citizens understand their legal rights and empowers legal professionals with advanced tools for better client service.',
             style: TextStyle(
               fontSize: 14,
               height: 1.5,
@@ -248,34 +248,34 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
   Widget _buildFeaturesSection() {
     final features = [
       {
-        'icon': Icons.satellite,
-        'title': 'Satellite Intelligence',
-        'description': 'Uses satellite data to predict disease outbreaks',
+        'icon': Icons.gavel,
+        'title': 'IPC Analysis',
+        'description': 'AI-powered analysis of Indian Penal Code sections',
       },
       {
         'icon': Icons.smart_toy,
-        'title': 'AI Health Assistant',
-        'description': 'Multilingual chatbot for health queries',
+        'title': 'Legal AI Assistant',
+        'description': 'Multilingual chatbot for legal queries and guidance',
       },
       {
-        'icon': Icons.map,
-        'title': 'Risk Mapping',
-        'description': 'Interactive risk maps with real-time updates',
+        'icon': Icons.security,
+        'title': 'Secure Analysis',
+        'description': 'Anonymous and encrypted legal case processing',
       },
       {
-        'icon': Icons.warning,
-        'title': 'Early Alerts',
-        'description': 'Proactive notifications before outbreaks',
+        'icon': Icons.warning_amber,
+        'title': 'Legal Guidance',
+        'description': 'Preliminary legal advice and IPC section identification',
       },
       {
         'icon': Icons.people,
-        'title': 'Community Focus',
-        'description': 'Designed for health workers and communities',
+        'title': 'Multi-User Support',
+        'description': 'Designed for citizens, lawyers, and legal professionals',
       },
       {
         'icon': Icons.analytics,
-        'title': 'Data Analytics',
-        'description': 'Comprehensive health trend analysis',
+        'title': 'Case Analytics',
+        'description': 'Comprehensive legal case trend analysis for professionals',
       },
     ];
 
@@ -300,7 +300,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D8A),
+              color: Color(0xFF1565C0), // Legal blue
             ),
           ),
           const SizedBox(height: 16),
@@ -313,12 +313,12 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2E7D8A).withOpacity(0.1),
+                      color: const Color(0xFF1565C0).withOpacity(0.1), // Legal blue
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       feature['icon'] as IconData,
-                      color: const Color(0xFF2E7D8A),
+                      color: const Color(0xFF1565C0), // Legal blue
                       size: 24,
                     ),
                   ),
@@ -376,7 +376,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D8A),
+              color: Color(0xFF1565C0), // Legal blue
             ),
           ),
           const SizedBox(height: 12),
@@ -391,7 +391,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
           const SizedBox(height: 8),
           
           const Text(
-            '• Sentinel-2 Satellite Data\n• MODIS Climate Data\n• ISRO Bhuvan Geo-platform\n• WHO Health Guidelines\n• Ministry of Health and Family Welfare',
+            '• Indian Penal Code (IPC) Database\n• Legal Precedents and Case Laws\n• Ministry of Law and Justice\n• Bar Council of India Guidelines\n• Supreme Court and High Court Judgments',
             style: TextStyle(
               fontSize: 14,
               height: 1.5,
@@ -409,7 +409,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
           const SizedBox(height: 8),
           
           const Text(
-            '• Flutter for Mobile App\n• Django for Backend\n• TensorFlow for AI Models\n• Google Maps API\n• OpenWeatherMap API',
+            '• Flutter for Mobile App\n• Django for Backend API\n• Ollama AI for Legal Analysis\n• PostgreSQL Database\n• Custom IPC-Helper AI Model',
             style: TextStyle(
               fontSize: 14,
               height: 1.5,
@@ -427,7 +427,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHelpSection('Getting Started', [
-            'Welcome to AarogyaRekha! This app helps you stay informed about health risks in your area.',
+            'Welcome to Juris-Lead! This app helps you understand legal implications of various situations and provides IPC analysis.',
             'Select your user type during setup for personalized features.',
             'Enable location services for accurate risk information.',
           ]),
@@ -435,37 +435,28 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
           const SizedBox(height: 20),
           
           _buildHelpSection('Dashboard', [
-            'View real-time health risk status for your location.',
-            'Check weather conditions and health impacts.',
-            'Access emergency contacts quickly.',
-            'See recent health notifications and alerts.',
+            'View your legal analysis history and recent cases.',
+            'Access quick IPC section lookup tools.',
+            'Check your account status and subscription details.',
+            'See recent legal notifications and updates.',
           ]),
           
           const SizedBox(height: 20),
           
-          _buildHelpSection('Risk Map', [
-            'Interactive map showing disease risk zones.',
-            'Different colors indicate risk levels (Green: Safe, Yellow: Caution, Red: High Risk).',
-            'Use filters to view specific disease risks.',
-            'Tap on areas for detailed risk information.',
+          _buildHelpSection('Legal Analysis', [
+            'Submit case descriptions for AI-powered IPC analysis.',
+            'Get applicable section numbers with explanations.',
+            'Understand why specific sections apply to your case.',
+            'Save and review your analysis history.',
           ]),
           
           const SizedBox(height: 20),
           
-          _buildHelpSection('Alerts & Notifications', [
-            'Receive real-time health alerts for your area.',
-            'View active health warnings and advisories.',
-            'Access prevention guidelines and tips.',
-            'Track alert history and updates.',
-          ]),
-          
-          const SizedBox(height: 20),
-          
-          _buildHelpSection('AI Assistant', [
-            'Ask health-related questions in multiple languages.',
-            'Get symptom guidance and health tips.',
-            'Access prevention recommendations.',
-            'Available 24/7 for health queries.',
+          _buildHelpSection('AI Legal Assistant', [
+            'Ask legal questions in multiple Indian languages.',
+            'Get guidance on IPC sections and legal procedures.',
+            'Access legal definitions and explanations.',
+            'Available 24/7 for preliminary legal guidance.',
           ]),
           
           const SizedBox(height: 20),
@@ -509,7 +500,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('• ', style: TextStyle(color: Color(0xFF2E7D8A))),
+                  const Text('• ', style: TextStyle(color: Color(0xFF1565C0))), // Legal blue
                   Expanded(
                     child: Text(
                       item,
@@ -550,15 +541,15 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D8A),
+              color: Color(0xFF1565C0), // Legal blue
             ),
           ),
           const SizedBox(height: 12),
           
-          _buildContactItem(Icons.email, 'Email', 'support@aarogyarekha.in'),
+          _buildContactItem(Icons.email, 'Email', 'support@juris-lead.in'),
           _buildContactItem(Icons.phone, 'Phone', '+91-1800-XXX-XXXX'),
-          _buildContactItem(Icons.language, 'Website', 'www.aarogyarekha.in'),
-          _buildContactItem(Icons.schedule, 'Support Hours', '24/7 Emergency Support'),
+          _buildContactItem(Icons.language, 'Website', 'www.juris-lead.in'),
+          _buildContactItem(Icons.schedule, 'Support Hours', '24/7 Legal Guidance'),
         ],
       ),
     );
@@ -571,7 +562,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
         children: [
           Icon(
             icon,
-            color: const Color(0xFF2E7D8A),
+            color: const Color(0xFF1565C0), // Legal blue
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -602,36 +593,36 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
   Widget _buildFAQContent() {
     final faqs = [
       {
-        'question': 'How does AarogyaRekha predict disease outbreaks?',
-        'answer': 'AarogyaRekha uses satellite data, climate patterns, and AI models to analyze environmental conditions that contribute to disease spread. This includes monitoring water bodies, vegetation, temperature, and humidity patterns.',
+        'question': 'How does Juris-Lead provide legal analysis?',
+        'answer': 'Juris-Lead uses AI-powered analysis trained on Indian Penal Code to identify applicable sections based on case descriptions. Our system provides section numbers, descriptions, and explanations of why they apply to your situation.',
       },
       {
-        'question': 'Is my location data secure?',
-        'answer': 'Yes, your location data is encrypted and used only for providing accurate health risk information. We follow strict privacy guidelines and do not share personal data with third parties.',
+        'question': 'Is my case information secure?',
+        'answer': 'Yes, all case information is encrypted and processed securely. We follow strict privacy guidelines and do not share personal legal information with third parties. Anonymous analysis ensures your privacy.',
       },
       {
-        'question': 'How accurate are the health predictions?',
-        'answer': 'Our AI models are trained on historical data and validated against real outbreak patterns. While predictions are highly accurate, they should be used as guidance alongside official health advisories.',
+        'question': 'How accurate are the legal analyses?',
+        'answer': 'Our AI models are trained on comprehensive IPC data and legal precedents. While highly accurate, our analysis should be used as guidance alongside consultation with qualified legal professionals.',
       },
       {
-        'question': 'Can I use the app offline?',
-        'answer': 'Yes, essential features like cached risk information and basic health guidance are available offline. However, real-time updates require internet connectivity.',
+        'question': 'Can I use the app for serious legal matters?',
+        'answer': 'Juris-Lead provides preliminary analysis and guidance. For serious legal matters, court cases, or complex situations, we strongly recommend consulting with a qualified lawyer or legal expert.',
       },
       {
-        'question': 'How often is the data updated?',
-        'answer': 'Risk maps and weather data are updated every 6-12 hours. Emergency alerts are sent immediately when risks are detected.',
+        'question': 'What is the difference between free and premium features?',
+        'answer': 'Citizens get free basic legal analysis and IPC section identification. Lawyers and legal professionals get access to premium features like detailed case analytics, precedent search, and advanced dashboard tools.',
       },
       {
         'question': 'What languages are supported?',
-        'answer': 'AarogyaRekha supports Hindi, English, Bengali, Telugu, Tamil, Marathi, and other regional languages. Voice navigation is available for low-literacy users.',
+        'answer': 'Juris-Lead supports Hindi, English, and other major Indian languages. We are continuously expanding language support for better accessibility.',
       },
       {
-        'question': 'How do I report a suspected outbreak?',
-        'answer': 'Use the Emergency Report feature in the app or contact your local health worker. The app will guide you through the reporting process.',
+        'question': 'How do I report incorrect analysis?',
+        'answer': 'Use the feedback feature in the app to report any concerns about legal analysis. Our team reviews all feedback to improve the AI model accuracy.',
       },
       {
-        'question': 'Can tourists use this app?',
-        'answer': 'Yes, tourists can select the Tourist user type to get travel-specific health risks, safe routes, and nearby healthcare facilities.',
+        'question': 'Can law students use this platform?',
+        'answer': 'Yes, law students can access educational resources, case studies, and practice with IPC analysis. Special student features help with legal education and understanding.',
       },
     ];
 

@@ -163,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
 
         // App Name
         const Text(
-          'AarogyaRekha',
+          'Juris-Lead',
           style: TextStyle(
             color: Colors.white,
             fontSize: 28,
@@ -201,7 +201,7 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(height: 8),
 
         Text(
-          'Sign in to continue',
+          'Access your legal dashboard',
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
             fontSize: 18,

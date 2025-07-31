@@ -53,9 +53,9 @@ EOF
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Start the Django development server
+# Start the Django development server with no auto-reload to prevent interruptions
 echo "Starting Django server..."
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:8000 --noreload
 
 # Start Gunicorn
 echo "Starting Gunicorn..."
