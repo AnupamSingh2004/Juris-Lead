@@ -17,7 +17,7 @@ class LegalCase(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"Case by {self.user.username} - {self.case_description[:50]}..."
+        return f"Case by {self.user.email} - {self.case_description[:50]}..."
 
 
 class IPCSection(models.Model):
@@ -75,4 +75,4 @@ class AnalysisHistory(models.Model):
         verbose_name_plural = "Analysis Histories"
     
     def __str__(self):
-        return f"Analysis by {self.user.username} at {self.request_timestamp}"
+        return f"Analysis by {self.user.email} at {self.request_timestamp}"

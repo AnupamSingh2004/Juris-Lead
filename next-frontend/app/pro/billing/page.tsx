@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LivingBackground } from "@/components/living-background"
 import { PageContainer } from "@/components/page-container"
 import { ProNavigation } from "@/components/pro-navigation"
+import { withLawyerAuth } from "@/lib/lawyer-auth"
 
 const plans = [
   {
@@ -92,7 +93,7 @@ const billingHistory = [
   },
 ]
 
-export default function ProBillingPage() {
+function ProBillingPage() {
   const [selectedPlan, setSelectedPlan] = useState("Professional")
   const [billingCycle, setBillingCycle] = useState("monthly")
 
@@ -330,3 +331,5 @@ export default function ProBillingPage() {
     </>
   )
 }
+
+export default withLawyerAuth(ProBillingPage)

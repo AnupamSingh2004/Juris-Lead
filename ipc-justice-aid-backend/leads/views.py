@@ -10,6 +10,8 @@ from django.conf import settings
 from datetime import timedelta, datetime
 import logging
 
+from authentication.permissions import IsLawyerUser, IsClientUser, IsLawyerOrReadOnly
+
 from .models import (
     LawyerProfile, Subscription, CaseLead, LeadAssignment,
     LawyerLeadFilter, LeadAnalytics, CitizenFeedback
@@ -198,7 +200,7 @@ class CitizenCaseAnalysisView(APIView):
 class LawyerProfileViewSet(viewsets.ModelViewSet):
     """ViewSet for lawyer profile management"""
     serializer_class = LawyerProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsLawyerUser]
     
     def get_queryset(self):
         return LawyerProfile.objects.filter(user=self.request.user)
@@ -234,7 +236,7 @@ class LawyerProfileViewSet(viewsets.ModelViewSet):
 class SubscriptionViewSet(viewsets.ModelViewSet):
     """ViewSet for subscription management"""
     serializer_class = SubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsLawyerUser]
     
     def get_queryset(self):
         try:
@@ -284,7 +286,7 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
 
 class CaseLeadViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for lawyers to view and interact with case leads"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsLawyerUser]
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -431,7 +433,7 @@ class CaseLeadViewSet(viewsets.ReadOnlyModelViewSet):
 
 class LawyerDashboardView(APIView):
     """Dashboard view for lawyers with statistics and metrics"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsLawyerUser]
     
     def get(self, request):
         try:

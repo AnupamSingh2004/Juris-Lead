@@ -4,7 +4,8 @@ import '../config/google_auth_config.dart';
 class GoogleAuthService {
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
-    // Temporarily remove serverClientId to test basic Android OAuth
+    // Remove serverClientId for now to test basic Android OAuth
+    // Will be added back when proper credentials are configured
     // serverClientId: GoogleAuthConfig.serverClientId,
   );
 
@@ -16,9 +17,16 @@ class GoogleAuthService {
       print('Web client ID: ${GoogleAuthConfig.webClientId}');
       print('Android client ID length: ${GoogleAuthConfig.androidClientId.length}');
       print('Web client ID length: ${GoogleAuthConfig.webClientId.length}');
-      print('Package name: com.aarogyarekha.app');
+      print('Package name: com.jurislead.app');
       print('SHA-1: 03:BA:58:0D:5B:E6:F0:8B:95:59:AB:3C:CA:5D:1E:05:6E:2E:EA:49');
       print('=== END DEBUG ===');
+
+      // Check if we're using old credentials
+      if (GoogleAuthConfig.androidClientId.contains('266959479556')) {
+        print('⚠️  WARNING: Using old OAuth credentials for package com.aarogyarekha.app');
+        print('⚠️  Current package is com.jurislead.app - this will likely fail');
+        print('⚠️  Please update credentials in Google Cloud Console');
+      }
 
       await _googleSignIn.signOut();
       
@@ -62,14 +70,15 @@ class GoogleAuthService {
         if (e.toString().contains('10')) {
           return {
             'success': false, 
-            'message': 'DEVELOPER_ERROR (Code 10): Configuration mismatch!\n\n'
-                      'This usually means:\n'
-                      '1. SHA-1 fingerprint doesn\'t match Google Cloud Console\n'
-                      '2. Package name doesn\'t match\n'
-                      '3. Android OAuth client not properly configured\n\n'
-                      'Current SHA-1: 03:BA:58:0D:5B:E6:F0:8B:95:59:AB:3C:CA:5D:1E:05:6E:2E:EA:49\n'
-                      'Package: com.aarogyarekha.app\n\n'
-                      'Please verify these match exactly in Google Cloud Console.'
+            'message': 'DEVELOPER_ERROR (Code 10): OAuth Configuration Mismatch!\n\n'
+                      '🔥 PROBLEM: The app package name changed from com.aarogyarekha.app to com.jurislead.app\n'
+                      'but Google OAuth credentials still use the old package name.\n\n'
+                      '✅ SOLUTION:\n'
+                      '1. Go to Google Cloud Console\n'
+                      '2. Create new Android OAuth client for com.jurislead.app\n'
+                      '3. Use SHA-1: 03:BA:58:0D:5B:E6:F0:8B:95:59:AB:3C:CA:5D:1E:05:6E:2E:EA:49\n'
+                      '4. Update .env file with new credentials\n\n'
+                      '📖 See GOOGLE_AUTH_SETUP.md for detailed instructions'
           };
         }
       }

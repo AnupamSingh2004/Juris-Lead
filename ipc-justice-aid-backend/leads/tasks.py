@@ -23,7 +23,7 @@ def send_lead_notification(lead_id, lawyer_id):
         subject = f"New Case Lead: {lead.case_category.title()} in {lead.city}"
         
         message = f"""
-        Dear {lawyer.user.get_full_name() or lawyer.user.username},
+        Dear {lawyer.user.get_full_name() or lawyer.user.email},
 
         A new case lead matching your practice areas has been posted:
 

@@ -207,6 +207,7 @@ def google_login(request):
         serializer = GoogleLoginSerializer(data=request.data)
         if serializer.is_valid():
             access_token = serializer.validated_data['access_token']
+            user_role = serializer.validated_data.get('user_role', 'client')
 
             # Verify Google token
             google_user_data = verify_google_token(access_token)
@@ -227,7 +228,8 @@ def google_login(request):
                     'is_google_user': True,
                     'google_id': google_user_data['google_id'],
                     'email_verified': True,
-                    'is_active': True
+                    'is_active': True,
+                    'user_role': user_role
                 }
             )
 
@@ -237,7 +239,38 @@ def google_login(request):
                 user.google_id = google_user_data['google_id']
                 user.email_verified = True
                 user.is_active = True
+                user.user_role = user_role
                 user.save()
+            elif not created:
+                # Update role if different
+                if user.user_role != user_role:
+                    user.user_role = user_role
+                    user.save(update_fields=['user_role'])
+
+            # For lawyer role, check if lawyer profile exists
+            if user_role == 'lawyer':
+                try:
+                    from leads.models import LawyerProfile
+                    lawyer_profile = LawyerProfile.objects.get(user=user)
+                except LawyerProfile.DoesNotExist:
+                    # Create a basic lawyer profile
+                    from leads.models import LawyerProfile, Subscription
+                    import uuid
+                    # Use unique identifier for Google OAuth users without bar council ID
+                    temp_bar_council_id = f"GOOGLE_OAUTH_{str(uuid.uuid4())[:8]}"
+                    lawyer_profile = LawyerProfile.objects.create(
+                        user=user,
+                        bar_council_id=temp_bar_council_id,  # Temporary unique ID for Google OAuth users
+                        city='',
+                        state='',
+                        profile_complete=False
+                    )
+                    # Create a basic subscription
+                    Subscription.objects.create(
+                        lawyer=lawyer_profile,
+                        tier='pro_bono',  # Use 'tier' instead of 'plan'
+                        status='active'
+                    )
 
             # Log successful login
             log_login_attempt(email, request, success=True)
@@ -252,7 +285,7 @@ def google_login(request):
             if created:
                 send_welcome_email(user)
 
-            return Response({
+            response_data = {
                 'status': 'success',
                 'message': 'Google login successful',
                 'data': {
@@ -261,7 +294,19 @@ def google_login(request):
                     'session_key': session_key,
                     'is_new_user': created
                 }
-            }, status=status.HTTP_200_OK)
+            }
+
+            # Add lawyer profile data if applicable
+            if user_role == 'lawyer':
+                try:
+                    from leads.models import LawyerProfile
+                    from leads.serializers import LawyerProfileSerializer
+                    lawyer_profile = LawyerProfile.objects.get(user=user)
+                    response_data['data']['lawyer_profile'] = LawyerProfileSerializer(lawyer_profile).data
+                except LawyerProfile.DoesNotExist:
+                    pass
+
+            return Response(response_data, status=status.HTTP_200_OK)
 
         return Response({
             'status': 'error',

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { withLawyerAuth } from "@/lib/lawyer-auth"
 import { MapPin, Calendar, DollarSign, Filter, Star, Briefcase, Clock, CheckCircle, AlertCircle } from "lucide-react"
 
 const mockAcceptedCases = [
@@ -65,7 +66,7 @@ const mockAcceptedCases = [
   },
 ]
 
-export default function MyCasesPage() {
+function MyCasesPage() {
   const [activeTab, setActiveTab] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [filteredCases, setFilteredCases] = useState(mockAcceptedCases)
@@ -353,3 +354,5 @@ export default function MyCasesPage() {
     </>
   )
 }
+
+export default withLawyerAuth(MyCasesPage)

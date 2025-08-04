@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { withLawyerAuth } from "@/lib/lawyer-auth"
 import { MapPin, Calendar, DollarSign, Filter, Star, Briefcase } from "lucide-react"
 
 const mockCases = [
@@ -79,7 +80,7 @@ const specializations = [
   "Criminal Law",
 ]
 
-export default function ProDashboard() {
+function ProDashboard() {
   const [activeTab, setActiveTab] = useState("live-feed")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedLocation, setSelectedLocation] = useState("All Locations")
@@ -403,3 +404,5 @@ export default function ProDashboard() {
     </>
   )
 }
+
+export default withLawyerAuth(ProDashboard)

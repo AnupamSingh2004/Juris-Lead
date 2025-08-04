@@ -135,6 +135,8 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     env_file:
       - .env
+    networks:
+      - ipc_justice_aid_network
  
     # Uncomment the deploy section if you have NVIDIA GPU support
     # deploy:

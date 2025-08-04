@@ -25,10 +25,9 @@ class LawyerProfileSerializer(serializers.ModelSerializer):
     
     def get_user_details(self, obj):
         return {
-            'username': obj.user.username,
+            'email': obj.user.email,  # Use email instead of username
             'first_name': obj.user.first_name,
             'last_name': obj.user.last_name,
-            'email': obj.user.email,
         }
     
     def get_practice_areas_display(self, obj):
@@ -48,7 +47,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         read_only_fields = ['current_month_leads_consumed', 'last_payment_date']
     
     def get_lawyer_name(self, obj):
-        return obj.lawyer.user.get_full_name() or obj.lawyer.user.username
+        return obj.lawyer.user.get_full_name() or obj.lawyer.user.email
 
 
 class CaseLeadSerializer(serializers.ModelSerializer):
@@ -102,7 +101,7 @@ class CaseLeadDetailSerializer(CaseLeadSerializer):
     def get_assigned_lawyers_details(self, obj):
         assignments = LeadAssignment.objects.filter(lead=obj).select_related('lawyer__user')
         return [{
-            'lawyer_name': assignment.lawyer.user.get_full_name() or assignment.lawyer.user.username,
+            'lawyer_name': assignment.lawyer.user.get_full_name() or assignment.lawyer.user.email,
             'action': assignment.action,
             'last_action_at': assignment.last_action_at,
             'lawyer_message': assignment.lawyer_message[:100] + '...' if len(assignment.lawyer_message) > 100 else assignment.lawyer_message
@@ -134,7 +133,7 @@ class LeadAssignmentSerializer(serializers.ModelSerializer):
     
     def get_lawyer_details(self, obj):
         return {
-            'name': obj.lawyer.user.get_full_name() or obj.lawyer.user.username,
+            'name': obj.lawyer.user.get_full_name() or obj.lawyer.user.email,
             'firm_name': obj.lawyer.firm_name,
             'experience_level': obj.lawyer.get_experience_level_display(),
             'consultation_fee': obj.lawyer.consultation_fee,

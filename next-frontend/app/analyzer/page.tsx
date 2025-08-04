@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { AuraAnimation } from "@/components/aura-animation"
+import { ApiService, ApiError, type AnalysisRequest } from "@/lib/api-service"
+import { withAuth } from "@/lib/auth-context"
 import {
   Scale,
   FileText,
@@ -26,6 +28,8 @@ import {
   Download,
   BookOpen,
   Users,
+  Wifi,
+  WifiOff,
 } from "lucide-react"
 
 type InputType = "text" | "pdf" | "image"
@@ -45,7 +49,7 @@ interface AnalysisResult {
   caseType: string
 }
 
-export default function AnalyzerPage() {
+function AnalyzerPage() {
   const [inputType, setInputType] = useState<InputType>("text")
   const [textInput, setTextInput] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -53,6 +57,23 @@ export default function AnalyzerPage() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [showResult, setShowResult] = useState(false)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking')
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
+
+  // Check backend connection on component mount
+  useEffect(() => {
+    checkBackendConnection()
+  }, [])
+
+  const checkBackendConnection = async () => {
+    try {
+      await ApiService.healthCheck()
+      setBackendStatus('connected')
+    } catch (error) {
+      console.error('Backend connection failed:', error)
+      setBackendStatus('disconnected')
+    }
+  }
 
   useEffect(() => {
     // Defensive programming: Check for restore parameter safely
@@ -107,46 +128,62 @@ export default function AnalyzerPage() {
       return
     }
 
+    // Check backend connection
+    if (backendStatus === 'disconnected') {
+      alert("Backend service is not available. Please try again later.")
+      return
+    }
+
     setIsAnalyzing(true)
     setShowResult(false)
     setCompletedSteps([])
+    setAnalysisError(null)
+
+    // Simulate analysis steps for UI feedback
+    const steps = [
+      "Connecting to AI analysis service...",
+      "Processing case description...",
+      "Analyzing applicable IPC sections...",
+      "Determining case severity...",
+      "Generating recommendations...",
+      "Finalizing analysis report..."
+    ]
+
+    // Show step progress
+    const stepInterval = setInterval(() => {
+      setCompletedSteps(prev => {
+        if (prev.length < steps.length - 1) {
+          return [...prev, steps[prev.length]]
+        }
+        return prev
+      })
+    }, 2000)
 
     try {
-      // Simulate AI analysis with proper error handling
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-
-      const mockResult: AnalysisResult = {
-        summary:
-          "Based on the incident description, this appears to be a case involving potential negligence and breach of duty. The situation requires immediate legal attention to protect your rights and interests.",
-        legalIssues: [
-          "Negligence and Duty of Care",
-          "Breach of Contract",
-          "Potential Damages and Compensation",
-          "Statute of Limitations Considerations",
-        ],
-        recommendations: [
-          "Document all evidence related to the incident",
-          "Gather witness statements and contact information",
-          "Preserve any physical evidence or photographs",
-          "Consult with a specialized lawyer immediately",
-          "Avoid discussing the case on social media",
-        ],
-        severity: "medium",
-        nextSteps: [
-          "Schedule consultation with recommended lawyers",
-          "Prepare comprehensive incident timeline",
-          "Collect all relevant documentation",
-          "Consider filing a formal complaint if applicable",
-        ],
-        applicableSections: [
-          { section: "IPC 420", title: "Cheating", description: "Dishonestly inducing delivery of property" },
-          { section: "IPC 406", title: "Criminal Breach of Trust", description: "Criminal breach of trust" },
-        ],
-        timeline: "2-6 months for resolution",
-        caseType: "Criminal Law",
+      let caseDescription = textInput.trim()
+      
+      // Handle file upload (for now, we'll use a placeholder)
+      if (inputType === "pdf" && selectedFile) {
+        caseDescription = `[PDF File Upload: ${selectedFile.name}] ${caseDescription || 'PDF content analysis requested'}`
+      } else if (inputType === "image" && selectedFile) {
+        caseDescription = `[Image File Upload: ${selectedFile.name}] ${caseDescription || 'Image content analysis requested'}`
       }
 
-      setAnalysisResult(mockResult)
+      const analysisRequest: AnalysisRequest = {
+        case_description: caseDescription,
+        user_type: 'citizen' // Default to citizen, could be made configurable
+      }
+
+      // Call real backend API
+      const backendResponse = await ApiService.analyzeCase(analysisRequest)
+      
+      // Transform backend response to frontend format
+      const transformedResult = ApiService.transformAnalysisResponse(backendResponse)
+      
+      clearInterval(stepInterval)
+      setCompletedSteps(steps)
+      
+      setAnalysisResult(transformedResult)
       setShowResult(true)
 
       // Save to history with error handling
@@ -161,8 +198,9 @@ export default function AnalyzerPage() {
           data: {
             input: textInput,
             file: selectedFile?.name,
-            result: mockResult,
+            result: transformedResult,
             inputType,
+            backendResponse: backendResponse, // Store original backend response
           },
           timestamp: new Date().toISOString(),
           status: "completed",
@@ -176,8 +214,22 @@ export default function AnalyzerPage() {
         // Don't crash - just log the error
       }
     } catch (error) {
+      clearInterval(stepInterval)
       console.error("Analysis error:", error)
-      alert("Analysis failed. Please try again.")
+      
+      let errorMessage = "Analysis failed. Please try again."
+      
+      if (error instanceof ApiError) {
+        errorMessage = error.message
+        if (error.status === 408) {
+          errorMessage = "Analysis is taking longer than expected. This may be due to complex case details. Please try again or simplify your description."
+        }
+      } else if (error instanceof Error) {
+        errorMessage = `Analysis error: ${error.message}`
+      }
+      
+      setAnalysisError(errorMessage)
+      alert(errorMessage)
     } finally {
       setIsAnalyzing(false)
     }
@@ -721,3 +773,5 @@ Please consult with a qualified lawyer for legal advice.
     </>
   )
 }
+
+export default withAuth(AnalyzerPage)

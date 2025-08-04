@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
+import { withLawyerAuth } from "@/lib/lawyer-auth"
 import { Award, Plus, X, Camera } from "lucide-react"
 
 const specializations = [
@@ -28,7 +29,7 @@ const specializations = [
   "Immigration Law",
 ]
 
-export default function ProfilePage() {
+function ProfilePage() {
   const [profile, setProfile] = useState({
     name: "Adv. Priya Sharma",
     email: "priya.sharma@example.com",
@@ -327,3 +328,5 @@ export default function ProfilePage() {
     </>
   )
 }
+
+export default withLawyerAuth(ProfilePage)

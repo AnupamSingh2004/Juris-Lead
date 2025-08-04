@@ -88,10 +88,12 @@ class OTPVerificationSerializer(serializers.Serializer):
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    user_role = serializers.ChoiceField(choices=[('client', 'Client'), ('lawyer', 'Lawyer')], default='client')
 
     def validate(self, attrs):
         email = attrs.get('email')
         password = attrs.get('password')
+        user_role = attrs.get('user_role')
 
         if email and password:
             user = authenticate(email=email, password=password)
@@ -105,6 +107,20 @@ class UserLoginSerializer(serializers.Serializer):
             if not user.email_verified and not user.is_google_user:
                 raise serializers.ValidationError("Email not verified. Please verify your email first.")
 
+            # Check if user role matches their profile
+            if user_role == 'lawyer':
+                # Check if user has a lawyer profile
+                try:
+                    from leads.models import LawyerProfile
+                    LawyerProfile.objects.get(user=user)
+                except LawyerProfile.DoesNotExist:
+                    raise serializers.ValidationError("No lawyer profile found. Please complete your lawyer registration first.")
+            
+            # Update user role if provided
+            if user.user_role != user_role:
+                user.user_role = user_role
+                user.save(update_fields=['user_role'])
+
             attrs['user'] = user
         else:
             raise serializers.ValidationError("Email and password are required.")
@@ -114,6 +130,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 class GoogleLoginSerializer(serializers.Serializer):
     access_token = serializers.CharField()
+    user_role = serializers.ChoiceField(choices=[('client', 'Client'), ('lawyer', 'Lawyer')], default='client')
 
     def validate_access_token(self, access_token):
         # This will be implemented in the view using Google's API
@@ -128,7 +145,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'email', 'first_name', 'last_name', 'full_name',
             'phone_number', 'date_of_birth', 'profile_picture',
-            'email_verified', 'is_google_user', 'date_joined'
+            'email_verified', 'is_google_user', 'user_role', 'date_joined'
         )
         read_only_fields = ('id', 'email', 'email_verified', 'is_google_user', 'date_joined')
 

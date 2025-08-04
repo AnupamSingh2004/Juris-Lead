@@ -6,14 +6,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Scale, Sun, Moon, Menu, X, User, History, LayoutDashboard, Settings, LogOut, ChevronDown } from "lucide-react"
+import { Scale, Sun, Moon, Menu, X, User, History, LayoutDashboard, Settings, LogOut, ChevronDown, Shield, Users, FileText, BookOpen, Search } from "lucide-react"
 import { LoginModal } from "@/components/login-modal"
 import { LanguageSelector } from "@/components/language-selector"
-
-interface UserProfile {
-  name: string
-  email: string
-}
+import { useAuth } from "@/lib/auth-context"
 
 export function Navigation() {
   const { theme, setTheme } = useTheme()
@@ -21,31 +17,12 @@ export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
-  const [userProfile, setUserProfile] = useState<UserProfile>({ name: "John Doe", email: "john@example.com" })
+
+  const { user, isAuthenticated, isLawyer, isClient, logout } = useAuth()
 
   useEffect(() => {
     setMounted(true)
-
-    // Check if user is logged in
-    try {
-      const loggedIn = localStorage.getItem("juris-logged-in")
-      if (loggedIn === "true") {
-        setIsLoggedIn(true)
-        const profileData = localStorage.getItem("juris-user-profile")
-        if (profileData) {
-          const profile = JSON.parse(profileData)
-          setUserProfile(profile)
-        }
-      }
-    } catch (error) {
-      console.error("Error loading user state:", error)
-      // Reset to logged out state if there's an error
-      setIsLoggedIn(false)
-      localStorage.removeItem("juris-logged-in")
-      localStorage.removeItem("juris-user-profile")
-    }
   }, [])
 
   // Close dropdown when clicking outside
@@ -61,14 +38,6 @@ export function Navigation() {
     return () => document.removeEventListener("click", handleClickOutside)
   }, [showProfileDropdown])
 
-  const navItems = [
-    { href: "/analyzer", label: "Analyze Incident" },
-    { href: "/summarizer", label: "Summarize Document" },
-    { href: "/case-builder", label: "Case Builder" },
-    { href: "/explore", label: "Explore Topics" },
-    { href: "/find-lawyer", label: "Find a Lawyer" },
-  ]
-
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark"
     setTheme(newTheme)
@@ -79,30 +48,9 @@ export function Navigation() {
     }
   }
 
-  const handleLoginSuccess = (profile: UserProfile) => {
-    setIsLoggedIn(true)
-    setUserProfile(profile)
-    setShowLoginModal(false)
-
-    try {
-      localStorage.setItem("juris-logged-in", "true")
-      localStorage.setItem("juris-user-profile", JSON.stringify(profile))
-    } catch (error) {
-      console.error("Error saving user state:", error)
-    }
-  }
-
-  const handleLogout = () => {
-    setIsLoggedIn(false)
+  const handleLogout = async () => {
+    await logout()
     setShowProfileDropdown(false)
-
-    try {
-      localStorage.removeItem("juris-logged-in")
-      localStorage.removeItem("juris-user-profile")
-    } catch (error) {
-      console.error("Error clearing user state:", error)
-    }
-
     // Redirect to home page
     window.location.href = "/"
   }
@@ -110,6 +58,20 @@ export function Navigation() {
   if (!mounted) {
     return null
   }
+
+  const navItems = [
+    { href: '/', label: 'Analyzer', icon: Scale, current: pathname === '/', requiresAuth: true },
+    { href: '/summarizer', label: 'Document Summarizer', icon: FileText, current: pathname === '/summarizer', requiresAuth: true },
+    { href: '/explore', label: 'Learn Legal Cases', icon: BookOpen, current: pathname === '/explore', requiresAuth: false },
+    { href: '/find-lawyer', label: 'Find Lawyers', icon: Search, current: pathname === '/find-lawyer', requiresAuth: false },
+    ...(isLawyer ? [
+      { href: '/pro/dashboard', label: 'Pro Dashboard', icon: LayoutDashboard, current: pathname === '/pro/dashboard', requiresAuth: true },
+      { href: '/pro/my-cases', label: 'My Cases', icon: History, current: pathname === '/pro/my-cases', requiresAuth: true }
+    ] : []),
+    ...(isClient && isAuthenticated ? [
+      { href: '/my-cases', label: 'My Cases', icon: History, current: pathname === '/my-cases', requiresAuth: true }
+    ] : [])
+  ]
 
   return (
     <>
@@ -125,17 +87,32 @@ export function Navigation() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`text-sm font-medium transition-all duration-300 hover:text-[#007BFF] dark:hover:text-[#00FFFF] prestigious-hover ${
-                    pathname === item.href ? "text-[#007BFF] dark:text-[#00FFFF]" : "text-gray-700 dark:text-[#E0E6F1]"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const handleClick = (e: React.MouseEvent) => {
+                  if (item.requiresAuth && !isAuthenticated) {
+                    e.preventDefault()
+                    setShowLoginModal(true)
+                  }
+                }
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={handleClick}
+                    className={`text-sm font-medium transition-all duration-300 hover:text-[#007BFF] dark:hover:text-[#00FFFF] prestigious-hover ${
+                      pathname === item.href ? "text-[#007BFF] dark:text-[#00FFFF]" : "text-gray-700 dark:text-[#E0E6F1]"
+                    } ${item.requiresAuth && !isAuthenticated ? 'cursor-pointer' : ''}`}
+                  >
+                    <span className="flex items-center gap-1">
+                      {item.label}
+                      {item.requiresAuth && !isAuthenticated && (
+                        <span className="text-xs text-orange-500 dark:text-orange-400">*</span>
+                      )}
+                    </span>
+                  </Link>
+                )
+              })}
             </div>
 
             <div className="flex items-center gap-4">
@@ -151,7 +128,7 @@ export function Navigation() {
               </Button>
 
               {/* Authenticated User Profile Dropdown */}
-              {isLoggedIn ? (
+              {isAuthenticated ? (
                 <div className="relative" data-profile-dropdown>
                   <Button
                     variant="ghost"
@@ -181,31 +158,48 @@ export function Navigation() {
                               <User className="w-5 h-5 text-white dark:text-[#0D1B2A]" />
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900 dark:text-[#E0E6F1]">{userProfile.name}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-300">{userProfile.email}</p>
+                              <p className="font-semibold text-gray-900 dark:text-[#E0E6F1]">{user?.first_name} {user?.last_name}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{user?.email}</p>
+                              <p className="text-xs text-blue-600 dark:text-blue-400 capitalize">{user?.user_role}</p>
                             </div>
                           </div>
                         </div>
 
                         {/* Navigation Links */}
                         <div className="py-2">
-                          <Link
-                            href="/client-history"
-                            onClick={() => setShowProfileDropdown(false)}
-                            className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-[#E0E6F1] hover:bg-gray-50 dark:hover:bg-[#0D1B2A]/50 transition-colors duration-200 prestigious-hover"
-                          >
-                            <History className="w-5 h-5 text-[#007BFF] dark:text-[#00FFFF]" />
-                            <span className="font-medium">My History</span>
-                          </Link>
+                          {/* Role-based Navigation */}
+                          {isClient && (
+                            <Link
+                              href="/my-cases"
+                              onClick={() => setShowProfileDropdown(false)}
+                              className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-[#E0E6F1] hover:bg-gray-50 dark:hover:bg-[#0D1B2A]/50 transition-colors duration-200 prestigious-hover"
+                            >
+                              <History className="w-5 h-5 text-[#007BFF] dark:text-[#00FFFF]" />
+                              <span className="font-medium">My Cases</span>
+                            </Link>
+                          )}
 
+                      {isLawyer && (
+                        <>
                           <Link
-                            href="/client-dashboard"
+                            href="/pro/dashboard"
                             onClick={() => setShowProfileDropdown(false)}
                             className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-[#E0E6F1] hover:bg-gray-50 dark:hover:bg-[#0D1B2A]/50 transition-colors duration-200 prestigious-hover"
                           >
                             <LayoutDashboard className="w-5 h-5 text-[#007BFF] dark:text-[#00FFFF]" />
-                            <span>My Dashboard</span>
+                            <span>Pro Dashboard</span>
                           </Link>
+
+                          <Link
+                            href="/pro/my-cases"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-[#E0E6F1] hover:bg-gray-50 dark:hover:bg-[#0D1B2A]/50 transition-colors duration-200 prestigious-hover"
+                          >
+                            <History className="w-5 h-5 text-[#007BFF] dark:text-[#00FFFF]" />
+                            <span>My Cases</span>
+                          </Link>
+                        </>
+                      )}
 
                           <Link
                             href="/profile-settings"
@@ -271,40 +265,85 @@ export function Navigation() {
                 className="lg:hidden py-4 border-t border-slate-200/50 dark:border-[#1B263B]/50"
               >
                 <div className="flex flex-col gap-4">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`text-sm font-medium transition-all duration-300 hover:text-[#007BFF] dark:hover:text-[#00FFFF] ${
-                        pathname === item.href
-                          ? "text-[#007BFF] dark:text-[#00FFFF]"
-                          : "text-gray-700 dark:text-[#E0E6F1]"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                  {navItems.map((item) => {
+                    const handleClick = (e: React.MouseEvent) => {
+                      if (item.requiresAuth && !isAuthenticated) {
+                        e.preventDefault()
+                        setIsMenuOpen(false)
+                        setShowLoginModal(true)
+                      } else {
+                        setIsMenuOpen(false)
+                      }
+                    }
 
-                  {isLoggedIn ? (
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={handleClick}
+                        className={`text-sm font-medium transition-all duration-300 hover:text-[#007BFF] dark:hover:text-[#00FFFF] ${
+                          pathname === item.href
+                            ? "text-[#007BFF] dark:text-[#00FFFF]"
+                            : "text-gray-700 dark:text-[#E0E6F1]"
+                        } ${item.requiresAuth && !isAuthenticated ? 'cursor-pointer' : ''}`}
+                      >
+                        <span className="flex items-center gap-1">
+                          {item.label}
+                          {item.requiresAuth && !isAuthenticated && (
+                            <span className="text-xs text-orange-500 dark:text-orange-400">*</span>
+                          )}
+                        </span>
+                      </Link>
+                    )
+                  })}
+
+                  {isAuthenticated ? (
                     <>
                       <div className="border-t border-gray-200 dark:border-[#1B263B] my-2" />
-                      <Link
-                        href="/client-history"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300"
-                      >
-                        <History className="w-4 h-4" />
-                        My History
-                      </Link>
-                      <Link
-                        href="/client-dashboard"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300"
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        My Dashboard
-                      </Link>
+                      
+                      {/* User Info */}
+                      <div className="px-2 py-2 bg-gray-50 dark:bg-[#0D1B2A]/50 rounded-lg mb-2">
+                        <p className="text-sm font-medium text-gray-900 dark:text-[#E0E6F1]">{user?.first_name} {user?.last_name}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-300">{user?.email}</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 capitalize flex items-center gap-1">
+                          {user?.user_role === 'lawyer' ? <Shield className="w-3 h-3" /> : <Users className="w-3 h-3" />}
+                          {user?.user_role}
+                        </p>
+                      </div>
+
+                      {/* Role-based Navigation */}
+                      {isClient && (
+                        <Link
+                          href="/my-cases"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300"
+                        >
+                          <History className="w-4 h-4" />
+                          My Cases
+                        </Link>
+                      )}
+                      
+                      {isLawyer && (
+                        <>
+                          <Link
+                            href="/pro/dashboard"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300"
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            Pro Dashboard
+                          </Link>
+                          <Link
+                            href="/pro/my-cases"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300"
+                          >
+                            <History className="w-4 h-4" />
+                            My Cases
+                          </Link>
+                        </>
+                      )}
+                      
                       <button
                         onClick={handleLogout}
                         className="flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-all duration-300 text-left"
@@ -332,6 +371,15 @@ export function Navigation() {
                       >
                         For Lawyers
                       </Link>
+                      
+                      {/* Authentication Note */}
+                      {!isAuthenticated && (
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+                          <p className="text-xs text-blue-700 dark:text-blue-300">
+                            <span className="text-orange-500 dark:text-orange-400">*</span> Login required for Analyzer and Document Summarizer
+                          </p>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -344,7 +392,7 @@ export function Navigation() {
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onLoginSuccess={handleLoginSuccess}
+        onLoginSuccess={() => setShowLoginModal(false)}
       />
     </>
   )

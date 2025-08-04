@@ -47,6 +47,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_google_user = models.BooleanField(default=False)
     google_id = models.CharField(max_length=100, blank=True, null=True)
 
+    # Role-based access control
+    USER_ROLES = (
+        ('client', 'Client/Citizen'),
+        ('lawyer', 'Lawyer/Legal Professional'),
+    )
+    user_role = models.CharField(max_length=20, choices=USER_ROLES, default='client')
+
     # Timestamps
     date_joined = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

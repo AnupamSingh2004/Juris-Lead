@@ -33,6 +33,12 @@ export function AnalysisNebula({ data }: AnalysisNebulaProps) {
   const [nodes, setNodes] = useState<NebulaNode[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const startTimeRef = useRef<number>(0)
+
+  useEffect(() => {
+    // Initialize start time when component mounts
+    startTimeRef.current = Date.now()
+  }, [])
 
   useEffect(() => {
     // Create nodes from data
@@ -116,8 +122,10 @@ export function AnalysisNebula({ data }: AnalysisNebulaProps) {
           punishment: "#EF4444",
         }[node.type]
 
-        // Pulsing effect for incident node
-        const pulseRadius = node.type === "incident" ? radius + Math.sin(Date.now() * 0.003) * 5 : radius
+        // Pulsing effect for incident node using relative time
+        const currentTime = Date.now()
+        const elapsedTime = currentTime - startTimeRef.current
+        const pulseRadius = node.type === "incident" ? radius + Math.sin(elapsedTime * 0.003) * 5 : radius
 
         ctx.fillStyle = color
         ctx.beginPath()

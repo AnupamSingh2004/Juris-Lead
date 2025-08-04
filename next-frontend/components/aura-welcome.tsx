@@ -10,9 +10,30 @@ interface AuraWelcomeProps {
   onComplete: () => void
 }
 
+// Deterministic positions for floating elements to avoid hydration mismatch
+const FLOATING_POSITIONS = [
+  { left: 10, top: 20 },
+  { left: 85, top: 15 },
+  { left: 25, top: 75 },
+  { left: 70, top: 85 },
+  { left: 15, top: 45 },
+  { left: 90, top: 60 },
+  { left: 45, top: 10 },
+  { left: 60, top: 90 },
+  { left: 30, top: 35 },
+  { left: 80, top: 25 },
+  { left: 5, top: 70 },
+  { left: 95, top: 40 }
+]
+
 export function AuraWelcome({ onComplete }: AuraWelcomeProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const steps = [
     {
@@ -252,14 +273,14 @@ export function AuraWelcome({ onComplete }: AuraWelcomeProps) {
             </AnimatePresence>
           </div>
 
-          {/* Floating Elements */}
-          {Array.from({ length: 12 }).map((_, i) => (
+          {/* Floating Elements - only render on client to avoid hydration mismatch */}
+          {mounted && FLOATING_POSITIONS.map((position, i) => (
             <motion.div
               key={i}
               className="absolute w-2 h-2 bg-[#00FFFF]/40 rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
+                left: `${position.left}%`,
+                top: `${position.top}%`,
               }}
               animate={{
                 y: [0, -100, 0],
@@ -267,9 +288,9 @@ export function AuraWelcome({ onComplete }: AuraWelcomeProps) {
                 scale: [0, 1, 0],
               }}
               transition={{
-                duration: Math.random() * 8 + 6,
+                duration: (i % 3 + 1) * 2 + 6, // Deterministic duration based on index
                 repeat: Number.POSITIVE_INFINITY,
-                delay: Math.random() * 5,
+                delay: (i % 4) * 1.25, // Deterministic delay based on index
                 ease: "easeInOut",
               }}
             />

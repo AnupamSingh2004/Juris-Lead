@@ -3,7 +3,7 @@ import 'home_screen.dart';
 import 'tools_screen.dart';
 import 'case_builder_screen.dart';
 import 'find_lawyer_screen.dart';
-import 'profile_screen_simple.dart';
+import 'profile_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});

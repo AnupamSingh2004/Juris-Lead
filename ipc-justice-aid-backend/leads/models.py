@@ -64,7 +64,7 @@ class LawyerProfile(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"Lawyer: {self.user.get_full_name() or self.user.username}"
+        return f"Lawyer: {self.user.get_full_name() or self.user.email}"
     
     def get_practice_areas_display(self):
         """Return human-readable practice areas"""
@@ -115,7 +115,7 @@ class Subscription(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.lawyer.user.username} - {self.get_tier_display()}"
+        return f"{self.lawyer.user.email} - {self.get_tier_display()}"
     
     def can_access_leads(self):
         """Check if lawyer can access more leads"""
@@ -239,7 +239,7 @@ class LeadAssignment(models.Model):
         ordering = ['-last_action_at']
     
     def __str__(self):
-        return f"{self.lawyer.user.username} - {self.lead.lead_id} ({self.action})"
+        return f"{self.lawyer.user.email} - {self.lead.lead_id} ({self.action})"
 
 
 class LawyerLeadFilter(models.Model):
@@ -265,7 +265,7 @@ class LawyerLeadFilter(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.lawyer.user.username} - {self.filter_name}"
+        return f"{self.lawyer.user.email} - {self.filter_name}"
 
 
 class LeadAnalytics(models.Model):

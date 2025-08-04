@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { AuraAnimation } from "@/components/aura-animation"
+import { withAuth } from "@/lib/auth-context"
 import {
   FileText,
   Upload,
@@ -36,7 +37,7 @@ interface SummaryResult {
   riskLevel: "low" | "medium" | "high"
 }
 
-export default function SummarizerPage() {
+function SummarizerPage() {
   const [textInput, setTextInput] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isSummarizing, setIsSummarizing] = useState(false)
@@ -607,3 +608,5 @@ Please consult with a qualified lawyer for legal advice.
     </>
   )
 }
+
+export default withAuth(SummarizerPage)

@@ -1,8 +1,39 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useState, useEffect } from "react"
+
+// Deterministic particle positions to avoid hydration mismatch
+const PARTICLE_POSITIONS = [
+  { left: 15, top: 25 },
+  { left: 75, top: 10 },
+  { left: 30, top: 60 },
+  { left: 85, top: 45 },
+  { left: 10, top: 80 },
+  { left: 60, top: 20 },
+  { left: 40, top: 90 },
+  { left: 90, top: 70 },
+  { left: 20, top: 40 },
+  { left: 70, top: 85 },
+  { left: 50, top: 15 },
+  { left: 25, top: 75 },
+  { left: 80, top: 30 },
+  { left: 35, top: 55 },
+  { left: 95, top: 5 },
+  { left: 5, top: 95 },
+  { left: 65, top: 35 },
+  { left: 45, top: 65 },
+  { left: 55, top: 50 },
+  { left: 18, top: 88 }
+]
 
 export function LivingBackground() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
       {/* Base gradient */}
@@ -53,23 +84,23 @@ export function LivingBackground() {
         }}
       />
 
-      {/* Floating particles */}
-      {Array.from({ length: 20 }).map((_, i) => (
+      {/* Floating particles - only render on client to avoid hydration mismatch */}
+      {mounted && PARTICLE_POSITIONS.map((position, i) => (
         <motion.div
           key={i}
           className="absolute w-2 h-2 bg-[#007BFF]/30 dark:bg-[#00FFFF]/30 rounded-full"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            left: `${position.left}%`,
+            top: `${position.top}%`,
           }}
           animate={{
             y: [0, -100, 0],
             opacity: [0, 1, 0],
           }}
           transition={{
-            duration: Math.random() * 10 + 10,
+            duration: (i % 3 + 1) * 5 + 10, // Deterministic duration based on index
             repeat: Number.POSITIVE_INFINITY,
-            delay: Math.random() * 10,
+            delay: (i % 5) * 2, // Deterministic delay based on index
             ease: "easeInOut",
           }}
         />
