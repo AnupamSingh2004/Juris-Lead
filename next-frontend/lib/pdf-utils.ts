@@ -1,8 +1,8 @@
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist'
 
-// Configure PDF.js worker
+// Configure the worker to use the local copy with matching version
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 }
 
 export interface PDFExtractionResult {

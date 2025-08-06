@@ -3,6 +3,7 @@ export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001/api/v1',
   ENDPOINTS: {
     ANALYZE_CASE: '/leads/analyze-case/', // Public endpoint for citizens to analyze cases
+    EXTRACT_TEXT: '/legal/extract-text/', // OCR endpoint for image text extraction
     HEALTH_CHECK: '/legal/health/', // Correct health check endpoint
     LOGIN: '/auth/login/',
     GOOGLE_LOGIN: '/auth/google-login/',
@@ -72,6 +73,25 @@ export interface AnalysisRequest {
   user_type?: string; // Add this field for frontend compatibility
 }
 
+export interface OCRResponse {
+  success: boolean;
+  extracted_text: string;
+  confidence: number;
+  metadata: {
+    word_count: number;
+    character_count: number;
+    image_size: {
+      width: number;
+      height: number;
+    };
+    file_info: {
+      name: string;
+      size_mb: number;
+      format: string;
+    };
+  };
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -133,9 +153,12 @@ export class ApiService {
 
     // Add auth header if available
     const token = this.getAuthToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
+
+    // Only set Content-Type for non-FormData requests
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     // Add any additional headers from options
     if (options.headers) {
@@ -453,6 +476,81 @@ export class ApiService {
 
       throw new ApiError({
         message: 'Unexpected error during analysis',
+        details: error,
+      });
+    }
+  }
+
+  static async extractTextFromImage(imageFile: File): Promise<OCRResponse> {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new ApiError({
+          message: 'Authentication required for image text extraction',
+          status: 401,
+        });
+      }
+
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('image', imageFile);
+
+      const response = await this.fetchWithTimeout(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.EXTRACT_TEXT}`,
+        {
+          method: 'POST',
+          headers: {
+            // Don't set Content-Type for FormData - let browser set it with boundary
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new ApiError({
+          message: errorData?.error || `OCR extraction failed: ${response.status}`,
+          status: response.status,
+          details: errorData,
+        });
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new ApiError({
+          message: data.error || 'OCR extraction failed',
+          details: data,
+        });
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Image text extraction failed:', error);
+      
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new ApiError({
+          message: 'Network error: Unable to reach OCR service',
+          status: 0,
+          details: error,
+        });
+      }
+
+      // Handle timeout errors
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiError({
+          message: 'OCR timeout: Image processing took too long',
+          status: 408,
+          details: error,
+        });
+      }
+
+      throw new ApiError({
+        message: 'Unexpected error during image text extraction',
         details: error,
       });
     }

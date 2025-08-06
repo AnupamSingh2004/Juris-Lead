@@ -12,6 +12,8 @@ from .serializers import (
     CaseAnalysisRequestSerializer, CaseAnalysisResponseSerializer, IPCSectionSerializer
 )
 from .services import OllamaService
+from .ocr_service import OCRService
+from .document_summarizer_service import DocumentSummarizerService
 
 
 class AnalyzeCaseView(APIView):
@@ -195,3 +197,145 @@ def user_stats(request):
     }
     
     return Response(stats)
+
+
+class ExtractTextFromImageView(APIView):
+    """
+    Endpoint for extracting text from uploaded images using OCR
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        """Extract text from uploaded image"""
+        
+        # Check if image file is provided
+        if 'image' not in request.FILES:
+            return Response(
+                {'error': 'No image file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        image_file = request.FILES['image']
+        ocr_service = OCRService()
+        
+        # Validate image file
+        validation_result = ocr_service.validate_image_file(image_file)
+        if not validation_result['valid']:
+            return Response(
+                {'error': validation_result['error']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Extract text from image
+            extraction_result = ocr_service.extract_text_from_image(image_file)
+            
+            if not extraction_result['success']:
+                return Response(
+                    {
+                        'error': 'OCR extraction failed',
+                        'details': extraction_result['error']
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
+            # Return successful result
+            return Response({
+                'success': True,
+                'extracted_text': extraction_result['text'],
+                'confidence': extraction_result['confidence'],
+                'metadata': {
+                    'word_count': extraction_result['word_count'],
+                    'character_count': extraction_result['character_count'],
+                    'image_size': extraction_result['image_size'],
+                    'file_info': {
+                        'name': image_file.name,
+                        'size_mb': validation_result['size_mb'],
+                        'format': validation_result['format']
+                    }
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {
+                    'error': 'Internal server error during OCR processing',
+                    'details': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class DocumentSummarizerView(APIView):
+    """
+    Endpoint for summarizing documents using AI
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        """Summarize uploaded document"""
+        
+        # Check if document file is provided
+        if 'document' not in request.FILES:
+            return Response(
+                {'error': 'No document file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        document_file = request.FILES['document']
+        
+        # Determine file type from content type
+        file_type = None
+        if document_file.content_type == 'application/pdf':
+            file_type = 'pdf'
+        elif document_file.content_type.startswith('image/'):
+            file_type = 'image'
+        else:
+            return Response(
+                {'error': f'Unsupported file type: {document_file.content_type}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        summarizer_service = DocumentSummarizerService()
+        
+        # Validate document file
+        validation_result = summarizer_service.validate_document_file(document_file, file_type)
+        if not validation_result['valid']:
+            return Response(
+                {'error': validation_result['error']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Summarize document
+            summary_result = summarizer_service.summarize_document(document_file, file_type)
+            
+            if not summary_result['success']:
+                return Response(
+                    {
+                        'error': 'Document summarization failed',
+                        'details': summary_result['error']
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
+            # Return successful result
+            return Response({
+                'success': True,
+                'summary': summary_result['summary'],
+                'metadata': {
+                    'word_count': summary_result['word_count'],
+                    'character_count': summary_result['character_count'],
+                    'file_info': summary_result['file_info']
+                },
+                'extracted_text': summary_result['extracted_text']
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {
+                    'error': 'Internal server error during document summarization',
+                    'details': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

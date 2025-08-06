@@ -15,6 +15,8 @@ import { AuraAnimation } from "@/components/aura-animation"
 import { ApiService, ApiError, type AnalysisRequest } from "@/lib/api-service"
 import { withAuth } from "@/lib/auth-context"
 import { useActivityTracker } from "@/hooks/use-history"
+import { extractTextFromPDF, isPDFFile, isPDFExtractionSupported } from "@/lib/pdf-utils"
+import { extractTextFromImage, isImageFile, isImageExtractionSupported, validateImageFile } from "@/lib/image-utils"
 import {
   Scale,
   FileText,
@@ -68,6 +70,9 @@ function AnalyzerPage() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking')
   const [analysisError, setAnalysisError] = useState<string | null>(null)
+  const [isExtractingPDF, setIsExtractingPDF] = useState(false)
+  const [isExtractingImage, setIsExtractingImage] = useState(false)
+  const [extractedText, setExtractedText] = useState<string>("")
 
   // Initialize activity tracker
   const { trackActivity } = useActivityTracker()
@@ -120,7 +125,7 @@ function AnalyzerPage() {
     }
   }, [])
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       // Validate file size (10MB limit)
@@ -128,7 +133,45 @@ function AnalyzerPage() {
         alert("File size must be less than 10MB")
         return
       }
+      
       setSelectedFile(file)
+      setExtractedText("")
+      
+      // If it's a PDF file, extract text automatically
+      if (isPDFFile(file) && isPDFExtractionSupported()) {
+        setIsExtractingPDF(true)
+        try {
+          const pdfResult = await extractTextFromPDF(file)
+          setExtractedText(pdfResult.text)
+          console.log(`PDF text extracted: ${pdfResult.text.length} characters from ${pdfResult.pageCount} pages`)
+        } catch (error) {
+          console.error('PDF extraction failed:', error)
+          alert(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          setSelectedFile(null)
+        } finally {
+          setIsExtractingPDF(false)
+        }
+      }
+      
+      // If it's an image file, extract text using OCR
+      else if (isImageFile(file) && isImageExtractionSupported()) {
+        setIsExtractingImage(true)
+        try {
+          const imageResult = await extractTextFromImage(file)
+          if (imageResult.success) {
+            setExtractedText(imageResult.text)
+            console.log(`Image text extracted: ${imageResult.text.length} characters with ${imageResult.confidence}% confidence`)
+          } else {
+            throw new Error(imageResult.error || 'OCR extraction failed')
+          }
+        } catch (error) {
+          console.error('Image OCR extraction failed:', error)
+          alert(`Failed to extract text from image: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          setSelectedFile(null)
+        } finally {
+          setIsExtractingImage(false)
+        }
+      }
     }
   }
 
@@ -178,11 +221,19 @@ function AnalyzerPage() {
     try {
       let caseDescription = textInput.trim()
       
-      // Handle file upload (for now, we'll use a placeholder)
+      // Handle file upload - use extracted text for PDFs
       if (inputType === "pdf" && selectedFile) {
-        caseDescription = `[PDF File Upload: ${selectedFile.name}] ${caseDescription || 'PDF content analysis requested'}`
+        if (extractedText) {
+          caseDescription = extractedText
+        } else {
+          caseDescription = `[PDF File Upload: ${selectedFile.name}] ${caseDescription || 'PDF content analysis requested'}`
+        }
       } else if (inputType === "image" && selectedFile) {
-        caseDescription = `[Image File Upload: ${selectedFile.name}] ${caseDescription || 'Image content analysis requested'}`
+        if (extractedText) {
+          caseDescription = extractedText
+        } else {
+          caseDescription = `[Image File Upload: ${selectedFile.name}] ${caseDescription || 'Image content analysis requested'}`
+        }
       }
 
       const analysisRequest: AnalysisRequest = {
@@ -341,6 +392,7 @@ function AnalyzerPage() {
   const resetAnalysis = () => {
     setTextInput("")
     setSelectedFile(null)
+    setExtractedText("")
     setAnalysisResult(null)
     setShowResult(false)
     setInputType("text")
@@ -568,13 +620,49 @@ Please consult with a qualified lawyer for legal advice.
                                       <ImageIcon className="w-8 h-8 text-[#007BFF] dark:text-[#00FFFF]" />
                                     )}
                                   </div>
-                                  <div>
+                                  <div className="text-center">
                                     <p className="text-lg font-medium text-gray-900 dark:text-[#E0E6F1]">
                                       {selectedFile.name}
                                     </p>
                                     <p className="text-sm text-gray-600 dark:text-gray-300">
                                       {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                                     </p>
+                                    {inputType === "pdf" && (
+                                      <div className="mt-2">
+                                        {isExtractingPDF ? (
+                                          <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                            Extracting text from PDF...
+                                          </div>
+                                        ) : extractedText ? (
+                                          <div className="text-sm text-green-600 dark:text-green-400">
+                                            ✓ Text extracted ({extractedText.length} characters)
+                                          </div>
+                                        ) : (
+                                          <div className="text-sm text-yellow-600 dark:text-yellow-400">
+                                            PDF uploaded - text extraction may have failed
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                    {inputType === "image" && (
+                                      <div className="mt-2">
+                                        {isExtractingImage ? (
+                                          <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                            Extracting text from image...
+                                          </div>
+                                        ) : extractedText ? (
+                                          <div className="text-sm text-green-600 dark:text-green-400">
+                                            ✓ Text extracted ({extractedText.length} characters)
+                                          </div>
+                                        ) : (
+                                          <div className="text-sm text-yellow-600 dark:text-yellow-400">
+                                            Image uploaded - text extraction may have failed
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                   <Button
                                     type="button"
@@ -583,6 +671,7 @@ Please consult with a qualified lawyer for legal advice.
                                     onClick={(e) => {
                                       e.preventDefault()
                                       setSelectedFile(null)
+                                      setExtractedText("")
                                     }}
                                     className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
                                   >
@@ -613,6 +702,25 @@ Please consult with a qualified lawyer for legal advice.
                       )}
                     </div>
 
+                    {/* Show extracted PDF text preview */}
+                    {inputType === "pdf" && extractedText && (
+                      <div className="mt-6 p-4 bg-gray-50 dark:bg-[#0D1B2A]/30 rounded-lg border border-gray-200 dark:border-[#1B263B]">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-[#E0E6F1] mb-2">
+                          Extracted Text Preview:
+                        </h3>
+                        <div className="max-h-32 overflow-y-auto">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                            {extractedText.length > 500 ? `${extractedText.substring(0, 500)}...` : extractedText}
+                          </p>
+                        </div>
+                        {extractedText.length > 500 && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            Showing first 500 characters of {extractedText.length} total characters
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Action Button */}
                     <div className="flex justify-center mt-8">
                       <Button
@@ -620,7 +728,9 @@ Please consult with a qualified lawyer for legal advice.
                         disabled={
                           (inputType === "text" && !textInput.trim()) ||
                           ((inputType === "pdf" || inputType === "image") && !selectedFile) ||
-                          isAnalyzing
+                          isAnalyzing ||
+                          isExtractingPDF ||
+                          isExtractingImage
                         }
                         className="px-8 py-4 text-lg font-semibold bg-[#007BFF] hover:bg-[#0056b3] dark:bg-[#00FFFF] dark:hover:bg-[#00CCCC] dark:text-[#0D1B2A] text-white prestigious-hover dark:glow-cyan transition-all duration-300 disabled:opacity-50"
                       >
