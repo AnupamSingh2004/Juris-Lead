@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { AuraAnimation } from "@/components/aura-animation"
 import { ApiService, ApiError, type AnalysisRequest } from "@/lib/api-service"
 import { withAuth } from "@/lib/auth-context"
+import { useActivityTracker } from "@/hooks/use-history"
 import {
   Scale,
   FileText,
@@ -30,6 +31,7 @@ import {
   Users,
   Wifi,
   WifiOff,
+  History,
 } from "lucide-react"
 
 type InputType = "text" | "pdf" | "image"
@@ -44,6 +46,13 @@ interface AnalysisResult {
     section: string
     title: string
     description: string
+    punishment: string
+  }>
+  defensiveSections?: Array<{
+    section: string
+    title: string
+    description: string
+    punishment: string
   }>
   timeline: string
   caseType: string
@@ -60,6 +69,9 @@ function AnalyzerPage() {
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking')
   const [analysisError, setAnalysisError] = useState<string | null>(null)
 
+  // Initialize activity tracker
+  const { trackActivity } = useActivityTracker()
+
   // Check backend connection on component mount
   useEffect(() => {
     checkBackendConnection()
@@ -69,9 +81,13 @@ function AnalyzerPage() {
     try {
       await ApiService.healthCheck()
       setBackendStatus('connected')
+      console.log('Backend connection successful')
     } catch (error) {
       console.error('Backend connection failed:', error)
       setBackendStatus('disconnected')
+      
+      // Don't fail silently - still allow analysis attempts
+      console.warn('Health check failed, but analysis may still work')
     }
   }
 
@@ -128,10 +144,10 @@ function AnalyzerPage() {
       return
     }
 
-    // Check backend connection
+    // Check backend connection (but don't block analysis)
     if (backendStatus === 'disconnected') {
-      alert("Backend service is not available. Please try again later.")
-      return
+      console.warn("Health check failed, but attempting analysis anyway")
+      // Don't return here - still try the analysis
     }
 
     setIsAnalyzing(true)
@@ -186,50 +202,111 @@ function AnalyzerPage() {
       setAnalysisResult(transformedResult)
       setShowResult(true)
 
-      // Save to history with error handling
+      // Save to backend history system or localStorage
       try {
-        const historyItem = {
-          id: Date.now().toString(),
-          type: "analysis",
-          title:
-            inputType === "text"
-              ? textInput.slice(0, 50) + (textInput.length > 50 ? "..." : "")
-              : `${inputType.toUpperCase()} Analysis - ${selectedFile?.name || "Unknown"}`,
-          data: {
-            input: textInput,
-            file: selectedFile?.name,
-            result: transformedResult,
-            inputType,
-            backendResponse: backendResponse, // Store original backend response
+        const activityTitle = inputType === "text"
+          ? (textInput.length > 50 ? textInput.slice(0, 50) + "..." : textInput)
+          : `${inputType.toUpperCase()} Analysis - ${selectedFile?.name || "Unknown"}`
+
+        const activityType = inputType === "text" ? "case_analysis" : "document_analysis"
+        
+        const historyData = {
+          description: `Legal analysis completed for ${inputType} input`,
+          status: 'success',
+          result_data: {
+            input_type: inputType,
+            case_description: caseDescription,
+            analysis_result: transformedResult,
+            backend_response: backendResponse,
+            severity: transformedResult.severity,
+            case_type: transformedResult.caseType,
+            sections_count: transformedResult.applicableSections?.length || 0,
+            defensive_sections_count: transformedResult.defensiveSections?.length || 0,
+            recommendations_count: transformedResult.recommendations?.length || 0
           },
-          timestamp: new Date().toISOString(),
-          status: "completed",
+          file_name: selectedFile?.name,
+          file_size: selectedFile?.size,
+          file_type: selectedFile?.type,
+          additional_data: {
+            input_method: inputType,
+            text_length: textInput.length,
+            completed_steps: steps.length
+          }
         }
 
-        const existingHistory = JSON.parse(localStorage.getItem("juris-history") || "[]")
-        existingHistory.unshift(historyItem)
-        localStorage.setItem("juris-history", JSON.stringify(existingHistory))
-      } catch (storageError) {
-        console.error("Error saving to history:", storageError)
-        // Don't crash - just log the error
-      }
-    } catch (error) {
-      clearInterval(stepInterval)
-      console.error("Analysis error:", error)
-      
-      let errorMessage = "Analysis failed. Please try again."
-      
-      if (error instanceof ApiError) {
-        errorMessage = error.message
-        if (error.status === 408) {
-          errorMessage = "Analysis is taking longer than expected. This may be due to complex case details. Please try again or simplify your description."
+        // Try to save to backend if user is authenticated
+        try {
+          await trackActivity(activityType, activityTitle, historyData)
+          console.log("Analysis successfully saved to history")
+        } catch (backendError) {
+          console.warn("Backend history save failed, using localStorage:", backendError)
+          
+          // Fallback to localStorage for unauthenticated users
+          const historyItem = {
+            id: Date.now().toString(),
+            type: "analysis",
+            title: activityTitle,
+            data: {
+              input: textInput,
+              file: selectedFile?.name,
+              result: transformedResult,
+              inputType,
+              backendResponse: backendResponse,
+            },
+            timestamp: new Date().toISOString(),
+            status: "completed",
+          }
+
+          const existingHistory = JSON.parse(localStorage.getItem("juris-history") || "[]")
+          existingHistory.unshift(historyItem)
+          localStorage.setItem("juris-history", JSON.stringify(existingHistory))
+          console.log("Analysis saved to localStorage")
         }
-      } else if (error instanceof Error) {
-        errorMessage = `Analysis error: ${error.message}`
-      }
+      } catch (error) {
+        clearInterval(stepInterval)
+        console.error("Analysis error:", error)
       
-      setAnalysisError(errorMessage)
-      alert(errorMessage)
+        // Track failed analysis
+        try {
+          const activityTitle = inputType === "text"
+            ? (textInput.length > 50 ? textInput.slice(0, 50) + "..." : textInput)
+            : `${inputType.toUpperCase()} Analysis - ${selectedFile?.name || "Unknown"}`
+          
+          const activityType = inputType === "text" ? "case_analysis" : "document_analysis"
+          
+          await trackActivity(activityType, activityTitle, {
+            description: `Legal analysis failed for ${inputType} input`,
+            status: 'failed',
+            result_data: {
+              error_message: error instanceof Error ? error.message : 'Unknown error',
+              input_type: inputType
+            },
+            file_name: selectedFile?.name,
+            file_size: selectedFile?.size,
+            file_type: selectedFile?.type,
+            additional_data: {
+              error_type: error instanceof ApiError ? 'api_error' : 'general_error',
+              error_status: error instanceof ApiError ? error.status : undefined
+            }
+          })
+        } catch (trackingError) {
+          console.error("Error tracking failed analysis:", trackingError)
+        }
+        
+        let errorMessage = "Analysis failed. Please try again."
+        
+        if (error instanceof ApiError) {
+          errorMessage = error.message
+          if (error.status === 408) {
+            errorMessage = "Analysis is taking longer than expected. This may be due to complex case details. Please try again or simplify your description."
+          }
+        } else if (error instanceof Error) {
+          errorMessage = `Analysis error: ${error.message}`
+        }
+        
+        setAnalysisError(errorMessage)
+        alert(errorMessage)
+      }
     } finally {
       setIsAnalyzing(false)
     }
@@ -284,7 +361,7 @@ ${selectedFile ? `FILE: ${selectedFile.name}` : ""}
 INCIDENT DESCRIPTION:
 ${textInput || "File-based analysis"}
 
-SEVERITY ASSESSMENT: ${analysisResult.severity.toUpperCase()}
+SEVERITY ASSESSMENT: ${analysisResult.severity?.toUpperCase() || 'MEDIUM'}
 EXPECTED TIMELINE: ${analysisResult.timeline}
 
 APPLICABLE LEGAL SECTIONS:
@@ -363,18 +440,31 @@ Please consult with a qualified lawyer for legal advice.
           <div className="max-w-4xl mx-auto px-6">
             {/* Header */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <div className="p-4 bg-[#007BFF]/10 dark:bg-[#00FFFF]/10 rounded-xl">
-                  <Scale className="w-10 h-10 text-[#007BFF] dark:text-[#00FFFF]" />
+              <div className="flex items-center justify-between mb-6">
+                {/* Left side - Title and description */}
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-[#007BFF]/10 dark:bg-[#00FFFF]/10 rounded-xl">
+                    <Scale className="w-10 h-10 text-[#007BFF] dark:text-[#00FFFF]" />
+                  </div>
+                  <div className="text-left">
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-[#E0E6F1] mb-2">
+                      Incident Analyzer
+                    </h1>
+                    <p className="text-xl text-gray-600 dark:text-gray-300">
+                      Let Aura analyze your legal situation with AI precision
+                    </p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-[#E0E6F1] mb-2">
-                    Incident Analyzer
-                  </h1>
-                  <p className="text-xl text-gray-600 dark:text-gray-300">
-                    Let Aura analyze your legal situation with AI precision
-                  </p>
-                </div>
+                
+                {/* Right side - History button */}
+                <Button
+                  onClick={() => window.location.href = '/client-history'}
+                  variant="outline"
+                  className="border-gray-300 dark:border-[#1B263B] text-gray-700 dark:text-[#E0E6F1] hover:bg-gray-50 dark:hover:bg-[#0D1B2A]/50 prestigious-hover"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  My History
+                </Button>
               </div>
             </motion.div>
 
@@ -589,10 +679,10 @@ Please consult with a qualified lawyer for legal advice.
                         </div>
                       </div>
                       {analysisResult && (
-                        <Badge className={getSeverityColor(analysisResult.severity)}>
+                        <Badge className={getSeverityColor(analysisResult.severity || 'medium')}>
                           <div className="flex items-center gap-1">
-                            {getSeverityIcon(analysisResult.severity)}
-                            {analysisResult.severity.toUpperCase()} PRIORITY
+                            {getSeverityIcon(analysisResult.severity || 'medium')}
+                            {(analysisResult.severity?.toUpperCase() || 'MEDIUM')} PRIORITY
                           </div>
                         </Badge>
                       )}
@@ -633,19 +723,48 @@ Please consult with a qualified lawyer for legal advice.
                       {/* Applicable Legal Sections */}
                       <Card className="p-6 bg-white/90 dark:bg-[#1B263B]/90 backdrop-blur-sm border-gray-200 dark:border-[#1B263B]">
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-[#E0E6F1] mb-4">
-                          Applicable Legal Sections
+                          Applicable Legal Sections (Prosecution)
                         </h3>
                         <div className="space-y-4">
                           {analysisResult.applicableSections.map((section, index) => (
-                            <div key={index} className="border-l-4 border-[#007BFF] dark:border-[#00FFFF] pl-4">
+                            <div key={index} className="border-l-4 border-red-500 dark:border-red-400 pl-4 bg-red-50 dark:bg-red-900/20 p-4 rounded-r-lg">
                               <h4 className="font-semibold text-gray-900 dark:text-[#E0E6F1]">
                                 {section.section}: {section.title}
                               </h4>
                               <p className="text-gray-600 dark:text-gray-300 mt-1">{section.description}</p>
+                              <div className="mt-3 p-2 bg-red-100 dark:bg-red-900/30 rounded">
+                                <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                                  <span className="font-semibold">Punishment:</span> {section.punishment}
+                                </p>
+                              </div>
                             </div>
                           ))}
                         </div>
                       </Card>
+
+                      {/* Defensive Legal Sections */}
+                      {analysisResult.defensiveSections && analysisResult.defensiveSections.length > 0 && (
+                        <Card className="p-6 bg-white/90 dark:bg-[#1B263B]/90 backdrop-blur-sm border-gray-200 dark:border-[#1B263B]">
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-[#E0E6F1] mb-4">
+                            Possible Defense Strategies
+                          </h3>
+                          <div className="space-y-4">
+                            {analysisResult.defensiveSections.map((section, index) => (
+                              <div key={index} className="border-l-4 border-green-500 dark:border-green-400 pl-4 bg-green-50 dark:bg-green-900/20 p-4 rounded-r-lg">
+                                <h4 className="font-semibold text-gray-900 dark:text-[#E0E6F1]">
+                                  {section.section}: {section.title}
+                                </h4>
+                                <p className="text-gray-600 dark:text-gray-300 mt-1">{section.description}</p>
+                                <div className="mt-3 p-2 bg-green-100 dark:bg-green-900/30 rounded">
+                                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                                    <span className="font-semibold">Defense Impact:</span> {section.punishment}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </Card>
+                      )}
 
                       {/* Recommendations */}
                       <Card className="p-6 bg-white/90 dark:bg-[#1B263B]/90 backdrop-blur-sm border-gray-200 dark:border-[#1B263B]">

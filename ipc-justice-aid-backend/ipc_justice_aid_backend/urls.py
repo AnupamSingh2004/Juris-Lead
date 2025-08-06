@@ -19,10 +19,12 @@ urlpatterns = [
     path('api/v1/auth/', include('authentication.urls')),
     path('api/v1/legal/', include('ipc_analysis.urls')),
     path('api/v1/leads/', include('leads.urls')),
+    path('api/v1/profile/', include('profile_page.urls')),
     
     # Legacy API endpoints (for backward compatibility)
     path('api/auth/', include('authentication.urls')),
     path('api/legal/', include('ipc_analysis.urls')),
+    path('api/profile/', include('profile_page.urls')),
     
     # Health check
     path('api/health/', health_check, name='health_check'),

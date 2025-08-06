@@ -105,21 +105,36 @@ class CitizenCaseAnalysisView(APIView):
             
             # Prepare clean response for frontend - support both old and new formats
             ipc_sections = ai_analysis.get('applicable_ipc_sections', ai_analysis.get('ipc_sections', []))
+            defensive_sections = ai_analysis.get('defensive_ipc_sections', [])
             
-            # Clean up the IPC sections to only include required fields
+            # Clean up the IPC sections to include all required fields
             cleaned_sections = []
             for section in ipc_sections:
                 cleaned_section = {
                     'section_number': section.get('section_number', ''),
                     'description': section.get('description', ''),
-                    'why_applicable': section.get('why_applicable', section.get('why_applied', ''))
+                    'why_applicable': section.get('why_applicable', section.get('why_applied', '')),
+                    'punishment': section.get('punishment', 'Details to be verified with legal expert')
                 }
                 cleaned_sections.append(cleaned_section)
             
+            # Clean up the defensive IPC sections
+            cleaned_defensive_sections = []
+            for section in defensive_sections:
+                cleaned_defensive_section = {
+                    'section_number': section.get('section_number', ''),
+                    'description': section.get('description', ''),
+                    'why_applicable': section.get('why_applicable', section.get('why_applied', '')),
+                    'punishment': section.get('punishment', 'No punishment if defense is established')
+                }
+                cleaned_defensive_sections.append(cleaned_defensive_section)
+            
             response_data = {
                 'applicable_ipc_sections': cleaned_sections,
+                'defensive_ipc_sections': cleaned_defensive_sections if cleaned_defensive_sections else None,
                 'severity': ai_analysis.get('severity', 'Medium'),
                 'total_sections_identified': len(cleaned_sections),
+                'total_defensive_sections': len(cleaned_defensive_sections) if cleaned_defensive_sections else None,
                 'analysis_timestamp': timezone.now().isoformat(),
             }
             

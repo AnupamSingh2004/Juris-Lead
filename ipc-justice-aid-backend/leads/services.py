@@ -58,41 +58,64 @@ class OllamaIPCService:
     def _construct_analysis_prompt(self, case_description: str, incident_date: Optional[str], 
                                  location: Optional[str]) -> str:
         """Construct the prompt for the IPC-Helper model"""
-        prompt = f"""You are an expert Indian legal assistant. Analyze this case and return ONLY the essential information requested below.
+        prompt = f"""You are an expert Indian legal assistant specializing in IPC (Indian Penal Code) analysis. Analyze this legal case and provide a comprehensive response.
 
-Case: {case_description}
+CASE DETAILS:
+{case_description}
+{f"Incident Date: {incident_date}" if incident_date else ""}
+{f"Location: {location}" if location else ""}
 
-INSTRUCTIONS:
-1. Identify ALL relevant IPC (Indian Penal Code) sections that apply to this case
-2. For each IPC section, provide ONLY:
-   - Section number (like 302, 304A, 279, etc.)
-   - Brief description of what the section covers
-   - Why this section applies to this specific case
-3. Determine the case severity (High/Medium/Low)
+ANALYSIS REQUIREMENTS:
+1. Identify ALL relevant IPC sections that APPLY AGAINST the accused (prosecution sections)
+2. Identify ALL relevant IPC sections that can be used FOR DEFENSE of the accused
+3. For EACH section (both prosecution and defense), provide:
+   - Exact section number (e.g., 302, 304A, 279, etc.)
+   - Complete legal description of what the section covers
+   - Specific explanation of why this section applies to this case
+   - Complete punishment/penalty details as per IPC
 
-Return your response in this EXACT JSON format (no other text):
+MANDATORY JSON FORMAT (return ONLY this JSON, no other text):
 
 {{
   "applicable_ipc_sections": [
     {{
-      "section_number": "302",
-      "description": "Whoever commits murder shall be punished with death, or imprisonment for life",
-      "why_applicable": "This section applies because the case involves intentional causing of death"
+      "section_number": "279",
+      "description": "IPC Section 279 - Rash driving or riding on a public way: Whoever drives any vehicle, or rides, on any public way in a manner so rash or negligent as to endanger human life, or to be likely to cause hurt or injury to any other person",
+      "why_applicable": "The accused was driving under influence which constitutes rash and negligent driving endangering human life on a public road",
+      "punishment": "Imprisonment of either description for a term which may extend to six months, or with fine which may extend to one thousand rupees, or with both"
     }},
     {{
-      "section_number": "304A", 
-      "description": "Whoever causes death by doing any rash or negligent act not amounting to culpable homicide",
-      "why_applicable": "This section applies if the death was caused by negligent driving without intention"
+      "section_number": "304A",
+      "description": "IPC Section 304A - Causing death by negligence: Whoever causes the death of any person by doing any rash or negligent act not amounting to culpable homicide",
+      "why_applicable": "If the pedestrian dies, this section applies as the death was caused by rash/negligent driving without intention to cause death",
+      "punishment": "Imprisonment of either description for a term which may extend to two years, or with fine, or with both"
     }}
   ],
-  "severity": "High"
+  "defensive_ipc_sections": [
+    {{
+      "section_number": "80",
+      "description": "IPC Section 80 - Accident in doing a lawful act: Nothing is an offence which is done by accident or misfortune, and without any criminal intention or knowledge in the doing of a lawful act in a lawful manner by lawful means and with proper care and caution",
+      "why_applicable": "Can be used as defense if it can be proven that the accident occurred despite taking proper care and caution while doing a lawful act",
+      "punishment": "Complete exemption from punishment if successfully established as defense"
+    }},
+    {{
+      "section_number": "88",
+      "description": "IPC Section 88 - Act not intended to cause death, done by consent in good faith for person's benefit: Nothing which is not intended to cause death, is an offence by reason of any harm which it may cause, or be intended by the doer to cause, to any person for whose benefit it is done in good faith",
+      "why_applicable": "May apply if the act was done in good faith without intention to cause harm",
+      "punishment": "No punishment if the defense is successfully established"
+    }}
+  ],
+  "severity": "High",
+  "total_sections_identified": 2,
+  "total_defensive_sections": 2
 }}
 
-IMPORTANT: 
-- Include ALL possible IPC sections that could apply
-- Be concise - no lengthy explanations
-- Return ONLY the JSON response, no additional text
-- Do not include punishment details, case summaries, or other information"""
+CRITICAL INSTRUCTIONS:
+- You MUST include complete IPC section descriptions with legal text
+- You MUST include detailed punishment information exactly as per IPC
+- You MUST provide both prosecution AND defensive sections
+- You MUST return ONLY the JSON object, no explanatory text before or after
+- Be thorough and accurate with legal terminology"""
         
         return prompt
     
@@ -307,8 +330,10 @@ IMPORTANT:
         """Enhance the analysis with additional processing"""
         enhanced = analysis.copy()
         
-        # Standardize the structure based on your model's output format
-        if 'ipc_sections' in enhanced:
+        # Standardize the structure - support both old and new formats
+        if 'applicable_ipc_sections' in enhanced:
+            sections = enhanced['applicable_ipc_sections']
+        elif 'ipc_sections' in enhanced:
             sections = enhanced['ipc_sections']
         else:
             sections = []
@@ -321,6 +346,15 @@ IMPORTANT:
         
         enhanced['section_numbers_list'] = section_numbers
         
+        # Add defensive section numbers if available
+        defensive_section_numbers = []
+        if 'defensive_ipc_sections' in enhanced:
+            for section in enhanced['defensive_ipc_sections']:
+                if isinstance(section, dict) and 'section_number' in section:
+                    defensive_section_numbers.append(section['section_number'])
+        
+        enhanced['defensive_section_numbers_list'] = defensive_section_numbers
+        
         # Determine case category based on IPC sections
         enhanced['case_category'] = self._determine_case_category(section_numbers)
         
@@ -330,8 +364,9 @@ IMPORTANT:
         # Add recommended actions
         enhanced['recommended_actions'] = self._get_recommended_actions(enhanced)
         
-        # Add timestamp
-        enhanced['analysis_timestamp'] = timezone.now().isoformat()
+        # Add timestamp if not already present
+        if 'analysis_timestamp' not in enhanced:
+            enhanced['analysis_timestamp'] = timezone.now().isoformat()
         
         return enhanced
     

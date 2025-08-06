@@ -2,17 +2,21 @@
 export const API_CONFIG = {
   BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001/api/v1',
   ENDPOINTS: {
-    ANALYZE_CASE: '/leads/analyze-case/',
-    HEALTH_CHECK: '/leads/health/',
+    ANALYZE_CASE: '/leads/analyze-case/', // Public endpoint for citizens to analyze cases
+    HEALTH_CHECK: '/legal/health/', // Correct health check endpoint
     LOGIN: '/auth/login/',
     GOOGLE_LOGIN: '/auth/google-login/',
     LOGOUT: '/auth/logout/',
     PROFILE: '/auth/profile/',
     REFRESH_TOKEN: '/auth/token/refresh/',
+    // History endpoints
+    HISTORY_LIST: '/auth/history/activities/',
+    HISTORY_ACTIVITY_TYPES: '/auth/history/activities/types/',
+    HISTORY_CLEAR: '/auth/history/activities/clear/',
+    HISTORY_EXPORT: '/auth/history/activities/export/',
   },
   TIMEOUT: 300000, // 5 minutes for AI analysis
 };
-
 export interface ApiErrorData {
   message: string;
   status?: number;
@@ -35,18 +39,37 @@ export interface IpcSection {
   section_number: string;
   description: string;
   why_applicable: string;
+  punishment: string;
+}
+
+export interface DefensiveIpcSection {
+  section_number: string;
+  description: string;
+  why_applicable: string;
+  punishment: string;
 }
 
 export interface AnalysisResponse {
   applicable_ipc_sections: IpcSection[];
+  defensive_ipc_sections?: DefensiveIpcSection[];
   severity: 'High' | 'Medium' | 'Low';
   total_sections_identified: number;
+  total_defensive_sections?: number;
   analysis_timestamp: string;
 }
 
 export interface AnalysisRequest {
   case_description: string;
-  user_type: 'citizen' | 'lawyer' | 'law_student' | 'legal_aid';
+  incident_date?: string;
+  incident_location?: string;
+  city?: string;
+  state?: string;
+  contact_method?: 'email' | 'phone';
+  contact_value?: string;
+  urgency_level?: 'low' | 'medium' | 'high';
+  create_lead?: boolean;
+  generate_pdf?: boolean;
+  user_type?: string; // Add this field for frontend compatibility
 }
 
 export interface LoginRequest {
@@ -144,15 +167,20 @@ export class ApiService {
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HEALTH_CHECK}`,
         {
           method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
         10000 // 10 seconds for health check
       );
 
       if (!response.ok) {
-        throw new Error(`Health check failed: ${response.status}`);
+        throw new Error(`Health check failed: ${response.status} ${response.statusText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('Health check successful:', data);
+      return data;
     } catch (error) {
       console.error('Health check failed:', error);
       throw new ApiError({
@@ -356,17 +384,14 @@ export class ApiService {
   }
 
   static async analyzeCase(request: AnalysisRequest): Promise<AnalysisResponse> {
-    // Check authentication for analysis
-    if (!this.isAuthenticated()) {
-      throw new ApiError({
-        message: 'Authentication required for case analysis',
-        status: 401,
-      });
-    }
-
     try {
-      // First check if service is healthy
-      await this.healthCheck();
+      // Remove authentication check since the analyze endpoint might not require it
+      // if (!this.isAuthenticated()) {
+      //   throw new ApiError({
+      //     message: 'Authentication required for case analysis',
+      //     status: 401,
+      //   });
+      // }
 
       const response = await this.fetchWithTimeout(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ANALYZE_CASE}`,
@@ -379,7 +404,7 @@ export class ApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         throw new ApiError({
-          message: errorData?.detail || `Analysis failed: ${response.status}`,
+          message: errorData?.detail || errorData?.message || `Analysis failed: ${response.status}`,
           status: response.status,
           details: errorData,
         });
@@ -387,15 +412,20 @@ export class ApiService {
 
       const data = await response.json();
       
-      // Validate response structure
-      if (!data.applicable_ipc_sections || !Array.isArray(data.applicable_ipc_sections)) {
-        throw new ApiError({
-          message: 'Invalid response format from analysis service',
-          details: data,
-        });
+      // Handle both success response formats
+      if (data.status === 'success' && data.data) {
+        return data.data;
       }
-
-      return data;
+      
+      // Direct response format
+      if (data.applicable_ipc_sections || data.analysis) {
+        return data;
+      }
+      
+      throw new ApiError({
+        message: 'Invalid response format from analysis service',
+        details: data,
+      });
     } catch (error) {
       console.error('Case analysis failed:', error);
       
@@ -439,6 +469,13 @@ export class ApiService {
       section: string;
       title: string;
       description: string;
+      punishment: string;
+    }>;
+    defensiveSections?: Array<{
+      section: string;
+      title: string;
+      description: string;
+      punishment: string;
     }>;
     timeline: string;
     caseType: string;
@@ -449,8 +486,19 @@ export class ApiService {
       'Low': 'low' as const,
     };
 
+    // Safely handle severity with fallback
+    const backendSeverity = backendResponse.severity || 'Medium';
+    const mappedSeverity = severityMap[backendSeverity] || 'medium';
+
+    const defensiveSections = backendResponse.defensive_ipc_sections?.map(section => ({
+      section: `IPC ${section.section_number}`,
+      title: section.description.split(':')[0] || section.description,
+      description: section.why_applicable,
+      punishment: section.punishment,
+    })) || [];
+
     return {
-      summary: `AI analysis identified ${backendResponse.total_sections_identified} applicable IPC sections with ${backendResponse.severity.toLowerCase()} severity. This analysis was completed on ${new Date(backendResponse.analysis_timestamp).toLocaleDateString()}.`,
+      summary: `AI analysis identified ${backendResponse.total_sections_identified} applicable IPC sections${backendResponse.total_defensive_sections ? ` and ${backendResponse.total_defensive_sections} defensive sections` : ''} with ${mappedSeverity} severity. This analysis was completed on ${new Date(backendResponse.analysis_timestamp).toLocaleDateString()}.`,
       legalIssues: backendResponse.applicable_ipc_sections.map(section => `IPC ${section.section_number}: ${section.description}`),
       recommendations: [
         'Consult with a qualified legal professional immediately',
@@ -458,21 +506,25 @@ export class ApiService {
         'Gather witness statements if applicable',
         'Preserve any physical or digital evidence',
         'Consider filing a formal complaint with appropriate authorities',
+        ...(defensiveSections.length > 0 ? ['Review available defensive strategies with your lawyer'] : []),
       ],
-      severity: severityMap[backendResponse.severity],
+      severity: mappedSeverity,
       nextSteps: [
         'Schedule consultation with recommended lawyers',
         'Prepare comprehensive case documentation',
         'Review applicable legal sections in detail',
         'Consider alternative dispute resolution options',
+        ...(defensiveSections.length > 0 ? ['Discuss defensive legal strategies'] : []),
       ],
       applicableSections: backendResponse.applicable_ipc_sections.map(section => ({
         section: `IPC ${section.section_number}`,
         title: section.description.split(':')[0] || section.description,
         description: section.why_applicable,
+        punishment: section.punishment,
       })),
-      timeline: backendResponse.severity === 'High' ? '1-3 months for urgent action' : 
-                backendResponse.severity === 'Medium' ? '2-6 months for resolution' : 
+      defensiveSections: defensiveSections.length > 0 ? defensiveSections : undefined,
+      timeline: mappedSeverity === 'high' ? '1-3 months for urgent action' : 
+                mappedSeverity === 'medium' ? '2-6 months for resolution' : 
                 '3-12 months for standard proceedings',
       caseType: 'Criminal Law - IPC Analysis',
     };

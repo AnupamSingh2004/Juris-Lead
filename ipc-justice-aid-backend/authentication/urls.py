@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
 
@@ -26,6 +26,9 @@ urlpatterns = [
 
     # User profile
     path('profile/', views.user_profile, name='user_profile'),
+
+    # History and analytics
+    path('history/', include('authentication.history_urls')),
 
     # Session management
     path('sessions/', views.user_sessions, name='user_sessions'),

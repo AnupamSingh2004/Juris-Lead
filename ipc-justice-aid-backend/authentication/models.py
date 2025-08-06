@@ -153,3 +153,57 @@ class UserSession(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.session_key[:8]}..."
+
+
+class UserProfile(models.Model):
+    """Extended user profile information"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='extended_profile')
+    
+    # Basic profile information
+    phone = models.CharField(max_length=15, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    
+    # User type
+    USER_TYPES = (
+        ('client', 'Client/Citizen'),
+        ('lawyer', 'Lawyer/Legal Professional'),
+    )
+    user_type = models.CharField(max_length=20, choices=USER_TYPES, default='client')
+    
+    # Lawyer-specific fields
+    specialization = models.CharField(max_length=100, blank=True)
+    experience = models.CharField(max_length=10, blank=True)  # Years of experience
+    bar_council_id = models.CharField(max_length=50, blank=True)
+    education = models.TextField(blank=True)
+    expertise = models.TextField(blank=True)  # JSON field for list of expertise areas
+    achievements = models.TextField(blank=True)  # JSON field for list of achievements
+    practice_areas = models.TextField(blank=True)  # JSON field for list of practice areas
+    court_admissions = models.TextField(blank=True)  # JSON field for list of court admissions
+    success_rate = models.IntegerField(default=0, blank=True)
+    total_cases = models.IntegerField(default=0, blank=True)
+    active_cases = models.IntegerField(default=0, blank=True)
+    rating = models.FloatField(default=0.0, blank=True)
+    reviews = models.IntegerField(default=0, blank=True)
+    
+    # Client-specific fields
+    occupation = models.CharField(max_length=100, blank=True)
+    company = models.CharField(max_length=100, blank=True)
+    interests = models.TextField(blank=True)  # JSON field for list of legal interests
+    preferred_languages = models.TextField(blank=True)  # JSON field for list of languages
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'user_profiles'
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+    
+    def __str__(self):
+        return f"{self.user.email} - Profile"
+
+
+# Import history models
+from .history_models import UserActivityHistory, UserAnalyticsData

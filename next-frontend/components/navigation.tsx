@@ -6,9 +6,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Scale, Sun, Moon, Menu, X, User, History, LayoutDashboard, Settings, LogOut, ChevronDown, Shield, Users, FileText, BookOpen, Search } from "lucide-react"
+import { Scale, Sun, Moon, Menu, X, User, History, LayoutDashboard, Settings, LogOut, ChevronDown, Shield, Users, FileText, BookOpen, Search, PlusSquare } from "lucide-react"
 import { LoginModal } from "@/components/login-modal"
-import { LanguageSelector } from "@/components/language-selector"
 import { useAuth } from "@/lib/auth-context"
 
 export function Navigation() {
@@ -60,16 +59,14 @@ export function Navigation() {
   }
 
   const navItems = [
-    { href: '/', label: 'Analyzer', icon: Scale, current: pathname === '/', requiresAuth: true },
+    { href: '/analyzer', label: 'Analyzer', icon: Scale, current: pathname === '/analyzer', requiresAuth: true },
     { href: '/summarizer', label: 'Document Summarizer', icon: FileText, current: pathname === '/summarizer', requiresAuth: true },
+    { href: '/case-builder', label: 'Case Builder', icon: PlusSquare, current: pathname === '/case-builder', requiresAuth: true },
     { href: '/explore', label: 'Learn Legal Cases', icon: BookOpen, current: pathname === '/explore', requiresAuth: false },
     { href: '/find-lawyer', label: 'Find Lawyers', icon: Search, current: pathname === '/find-lawyer', requiresAuth: false },
     ...(isLawyer ? [
       { href: '/pro/dashboard', label: 'Pro Dashboard', icon: LayoutDashboard, current: pathname === '/pro/dashboard', requiresAuth: true },
       { href: '/pro/my-cases', label: 'My Cases', icon: History, current: pathname === '/pro/my-cases', requiresAuth: true }
-    ] : []),
-    ...(isClient && isAuthenticated ? [
-      { href: '/my-cases', label: 'My Cases', icon: History, current: pathname === '/my-cases', requiresAuth: true }
     ] : [])
   ]
 
@@ -116,8 +113,6 @@ export function Navigation() {
             </div>
 
             <div className="flex items-center gap-4">
-              <LanguageSelector />
-
               <Button
                 variant="ghost"
                 size="sm"
@@ -168,17 +163,6 @@ export function Navigation() {
                         {/* Navigation Links */}
                         <div className="py-2">
                           {/* Role-based Navigation */}
-                          {isClient && (
-                            <Link
-                              href="/my-cases"
-                              onClick={() => setShowProfileDropdown(false)}
-                              className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-[#E0E6F1] hover:bg-gray-50 dark:hover:bg-[#0D1B2A]/50 transition-colors duration-200 prestigious-hover"
-                            >
-                              <History className="w-5 h-5 text-[#007BFF] dark:text-[#00FFFF]" />
-                              <span className="font-medium">My Cases</span>
-                            </Link>
-                          )}
-
                       {isLawyer && (
                         <>
                           <Link
@@ -200,6 +184,15 @@ export function Navigation() {
                           </Link>
                         </>
                       )}
+
+                          <Link
+                            href="/profile"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-[#E0E6F1] hover:bg-gray-50 dark:hover:bg-[#0D1B2A]/50 transition-colors duration-200 prestigious-hover"
+                          >
+                            <User className="w-5 h-5 text-[#007BFF] dark:text-[#00FFFF]" />
+                            <span>Profile</span>
+                          </Link>
 
                           <Link
                             href="/profile-settings"
@@ -312,17 +305,6 @@ export function Navigation() {
                       </div>
 
                       {/* Role-based Navigation */}
-                      {isClient && (
-                        <Link
-                          href="/my-cases"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300"
-                        >
-                          <History className="w-4 h-4" />
-                          My Cases
-                        </Link>
-                      )}
-                      
                       {isLawyer && (
                         <>
                           <Link
