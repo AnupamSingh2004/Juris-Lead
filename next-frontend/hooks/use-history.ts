@@ -89,10 +89,27 @@ export const useHistory = () => {
     }
   }
 
+  const getLocalHistory = (): ActivityRecord[] => {
+    try {
+      const localData = localStorage.getItem("document-summaries")
+      if (localData) {
+        return JSON.parse(localData)
+      }
+      return []
+    } catch (error) {
+      console.error("Error reading local history:", error)
+      return []
+    }
+  }
+
   const fetchHistory = async (filters: HistoryFilters = {}): Promise<HistoryResponse> => {
     setLoading(true)
     setError(null)
     
+    let apiData: HistoryResponse | null = null
+    let localData: ActivityRecord[] = []
+    
+    // Try to fetch from API first
     try {
       const params = new URLSearchParams()
       Object.entries(filters).forEach(([key, value]) => {
@@ -105,19 +122,76 @@ export const useHistory = () => {
         headers: getAuthHeaders(),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch history')
+      if (response.ok) {
+        apiData = await response.json()
+      } else {
+        console.warn("API history fetch failed, using local storage")
       }
-
-      const data = await response.json()
-      return data
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-      setError(errorMessage)
-      throw err
-    } finally {
-      setLoading(false)
+      console.warn("API history fetch error, using local storage:", err)
     }
+    
+    // Always get local data as fallback or supplement
+    localData = getLocalHistory()
+    
+    // Filter local data if filters are applied
+    if (filters.activity_type && filters.activity_type !== '') {
+      localData = localData.filter(item => item.activity_type === filters.activity_type)
+    }
+    if (filters.status && filters.status !== '') {
+      localData = localData.filter(item => item.status === filters.status)
+    }
+    if (filters.search && filters.search !== '') {
+      const searchLower = filters.search.toLowerCase()
+      localData = localData.filter(item => 
+        item.title.toLowerCase().includes(searchLower) ||
+        item.description.toLowerCase().includes(searchLower)
+      )
+    }
+    
+    // Combine and deduplicate data
+    let combinedResults: ActivityRecord[] = []
+    
+    if (apiData) {
+      combinedResults = [...apiData.results]
+    }
+    
+    // Add local data that's not already in API results
+    localData.forEach(localItem => {
+      const exists = combinedResults.some(apiItem => apiItem.id === localItem.id)
+      if (!exists) {
+        combinedResults.push(localItem)
+      }
+    })
+    
+    // Sort by created_at date (newest first)
+    combinedResults.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    
+    // Apply pagination
+    const page = filters.page || 1
+    const pageSize = filters.page_size || 20
+    const startIndex = (page - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    const paginatedResults = combinedResults.slice(startIndex, endIndex)
+    
+    const result: HistoryResponse = {
+      results: paginatedResults,
+      count: combinedResults.length,
+      next: endIndex < combinedResults.length ? `page=${page + 1}` : undefined,
+      previous: page > 1 ? `page=${page - 1}` : undefined,
+      summary: {
+        total_activities: combinedResults.length,
+        activity_breakdown: apiData?.summary?.activity_breakdown || [
+          { activity_type: "document_summarization", count: localData.length }
+        ],
+        status_breakdown: apiData?.summary?.status_breakdown || [
+          { status: "success", count: localData.filter(item => item.status === "success").length }
+        ]
+      }
+    }
+    
+    setLoading(false)
+    return result
   }
 
   const createActivity = async (activityData: CreateActivityData): Promise<ActivityRecord> => {
@@ -251,6 +325,7 @@ export const useHistory = () => {
     getActivityTypes,
     clearHistory,
     exportHistory,
+    getLocalHistory,
   }
 }
 

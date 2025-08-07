@@ -72,6 +72,84 @@ const STATUS_ICONS = {
   cancelled: AlertTriangle,
 }
 
+// Component to display document summary in a nice format
+const SummaryDisplay = ({ summary }: { summary: any }) => {
+  if (!summary?.summary) {
+    return <p className="text-gray-500 dark:text-gray-400">No summary data available</p>
+  }
+
+  const summaryData = summary.summary
+
+  return (
+    <div className="space-y-4">
+      {/* Quick Info */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+          {summaryData.document_type}
+        </Badge>
+        <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+          {summaryData.urgency_level} Priority
+        </Badge>
+        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+          {summaryData.language_complexity} Complexity
+        </Badge>
+      </div>
+
+      {/* Simple Summary */}
+      <div>
+        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Simple Summary</h4>
+        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+          {summaryData.simple_summary}
+        </p>
+      </div>
+
+      {/* Key Points */}
+      {summaryData.key_points && summaryData.key_points.length > 0 && (
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Key Points</h4>
+          <ul className="text-sm space-y-1">
+            {summaryData.key_points.slice(0, 3).map((point: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 text-gray-600 dark:text-gray-300">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                {point}
+              </li>
+            ))}
+            {summaryData.key_points.length > 3 && (
+              <li className="text-xs text-gray-500 dark:text-gray-400 italic">
+                +{summaryData.key_points.length - 3} more points
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {/* Action Required */}
+      {summaryData.action_required && (
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Action Required</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            {summaryData.action_required}
+          </p>
+        </div>
+      )}
+
+      {/* Metadata */}
+      {summary.metadata && (
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
+            {summary.metadata.word_count && (
+              <span>{summary.metadata.word_count} words</span>
+            )}
+            {summary.metadata.character_count && (
+              <span>{summary.metadata.character_count} characters</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function HistoryPage() {
   const [activities, setActivities] = useState<ActivityRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -479,9 +557,13 @@ function HistoryPage() {
                   {selectedActivity.result_data && (
                     <div>
                       <h3 className="font-medium text-gray-900 dark:text-white mb-2">Results</h3>
-                      <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
-                        {JSON.stringify(selectedActivity.result_data, null, 2)}
-                      </pre>
+                      {selectedActivity.activity_type === 'document_summarization' ? (
+                        <SummaryDisplay summary={selectedActivity.result_data} />
+                      ) : (
+                        <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
+                          {JSON.stringify(selectedActivity.result_data, null, 2)}
+                        </pre>
+                      )}
                     </div>
                   )}
 

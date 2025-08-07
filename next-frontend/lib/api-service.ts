@@ -4,6 +4,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     ANALYZE_CASE: '/leads/analyze-case/', // Public endpoint for citizens to analyze cases
     EXTRACT_TEXT: '/legal/extract-text/', // OCR endpoint for image text extraction
+    SUMMARIZE_DOCUMENT: '/legal/summarize-document/', // Document summarizer endpoint
     HEALTH_CHECK: '/legal/health/', // Correct health check endpoint
     LOGIN: '/auth/login/',
     GOOGLE_LOGIN: '/auth/google-login/',
@@ -90,6 +91,34 @@ export interface OCRResponse {
       format: string;
     };
   };
+}
+
+export interface DocumentSummary {
+  document_type: string;
+  simple_summary: string;
+  detailed_summary: string;
+  key_points: string[];
+  parties_involved: string[];
+  important_dates: string[];
+  legal_implications: string;
+  action_required: string;
+  urgency_level: 'High' | 'Medium' | 'Low';
+  language_complexity: 'Simple' | 'Moderate' | 'Complex';
+}
+
+export interface DocumentSummaryResponse {
+  success: boolean;
+  summary: DocumentSummary;
+  metadata: {
+    word_count: number;
+    character_count: number;
+    file_info: {
+      name: string;
+      size_mb: number;
+      type: string;
+    };
+  };
+  extracted_text: string;
 }
 
 export interface LoginRequest {
@@ -551,6 +580,81 @@ export class ApiService {
 
       throw new ApiError({
         message: 'Unexpected error during image text extraction',
+        details: error,
+      });
+    }
+  }
+
+  static async summarizeDocument(documentFile: File): Promise<DocumentSummaryResponse> {
+    try {
+      if (!this.isAuthenticated()) {
+        throw new ApiError({
+          message: 'Authentication required for document summarization',
+          status: 401,
+        });
+      }
+
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('document', documentFile);
+
+      const response = await this.fetchWithTimeout(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SUMMARIZE_DOCUMENT}`,
+        {
+          method: 'POST',
+          headers: {
+            // Don't set Content-Type for FormData - let browser set it with boundary
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new ApiError({
+          message: errorData?.error || `Document summarization failed: ${response.status}`,
+          status: response.status,
+          details: errorData,
+        });
+      }
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new ApiError({
+          message: data.error || 'Document summarization failed',
+          details: data,
+        });
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Document summarization failed:', error);
+      
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new ApiError({
+          message: 'Network error: Unable to reach document summarization service',
+          status: 0,
+          details: error,
+        });
+      }
+
+      // Handle timeout errors
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiError({
+          message: 'Summarization timeout: Document processing took too long',
+          status: 408,
+          details: error,
+        });
+      }
+
+      throw new ApiError({
+        message: 'Unexpected error during document summarization',
         details: error,
       });
     }

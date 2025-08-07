@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     AnalyzeCaseView, LegalCaseListView, LegalAnalysisDetailView,
     AnalysisHistoryView, IPCSectionListView, health_check,
-    ollama_health_check, user_stats, ExtractTextFromImageView
+    ollama_health_check, user_stats, ExtractTextFromImageView,
+    DocumentSummarizerView
 )
 
 app_name = 'ipc_analysis'
@@ -13,6 +14,9 @@ urlpatterns = [
     
     # OCR endpoint
     path('extract-text/', ExtractTextFromImageView.as_view(), name='extract_text_from_image'),
+    
+    # Document summarizer endpoint
+    path('summarize-document/', DocumentSummarizerView.as_view(), name='summarize_document'),
     
     # Case management
     path('cases/', LegalCaseListView.as_view(), name='legal_cases'),

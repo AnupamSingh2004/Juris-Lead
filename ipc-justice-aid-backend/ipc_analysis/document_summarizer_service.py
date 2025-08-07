@@ -120,7 +120,7 @@ class DocumentSummarizerService:
         try:
             # Create a specialized prompt for document summarization
             summary_prompt = f"""
-You are a legal document summarizer. Please analyze the following document and provide a comprehensive summary in JSON format.
+You are an intelligent document analyzer. Please analyze the following document and provide a comprehensive summary in JSON format.
 
 Document Text:
 {text}
@@ -128,7 +128,7 @@ Document Text:
 Please provide a summary in the following JSON structure:
 
 {{
-    "document_type": "Type of document (e.g., Legal Notice, Contract, Government Order, etc.)",
+    "document_type": "Type of document (e.g., Report, Letter, Article, Manual, Contract, etc.)",
     "simple_summary": "A simple, easy-to-understand summary in 2-3 sentences",
     "detailed_summary": "A more detailed summary covering all important points",
     "key_points": [
@@ -141,13 +141,13 @@ Please provide a summary in the following JSON structure:
     "important_dates": [
         "Any dates mentioned in the document"
     ],
-    "legal_implications": "What this document means legally",
-    "action_required": "What actions, if any, are required based on this document",
-    "urgency_level": "High/Medium/Low - based on time sensitivity",
+    "legal_implications": "Important implications or significance of this document",
+    "action_required": "What actions, if any, are required or recommended based on this document",
+    "urgency_level": "High/Medium/Low - based on time sensitivity and importance",
     "language_complexity": "Simple/Moderate/Complex - how difficult the language is"
 }}
 
-Make sure your response is valid JSON format. Use simple, clear language that a non-lawyer can understand.
+Make sure your response is valid JSON format. Use simple, clear language that anyone can understand.
 """
 
             # Call Ollama service
@@ -168,14 +168,14 @@ Make sure your response is valid JSON format. Use simple, clear language that a 
             if not summary_json:
                 # If JSON parsing fails, create a simple summary
                 summary_json = {
-                    "document_type": "Legal Document",
+                    "document_type": "General Document",
                     "simple_summary": "Document analysis completed. Please review the detailed text for specific information.",
                     "detailed_summary": ai_response.get('explanation', 'AI analysis completed'),
                     "key_points": ["AI analysis provided", "Please review document carefully"],
                     "parties_involved": [],
                     "important_dates": [],
-                    "legal_implications": "Legal review recommended",
-                    "action_required": "Consult with legal professional if needed",
+                    "legal_implications": "Document review recommended for important decisions",
+                    "action_required": "Review document content and take appropriate action if needed",
                     "urgency_level": "Medium",
                     "language_complexity": "Moderate"
                 }

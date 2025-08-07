@@ -90,30 +90,39 @@ function ClientHistory() {
       // Fallback to localStorage for backward compatibility
       try {
         const savedHistory = JSON.parse(localStorage.getItem("juris-history") || "[]")
-        const validHistory = savedHistory.filter(
+        const documentSummaries = JSON.parse(localStorage.getItem("document-summaries") || "[]")
+        
+        // Combine both localStorage sources
+        const allLocalHistory = [...savedHistory, ...documentSummaries]
+        
+        const validHistory = allLocalHistory.filter(
           (item: any) =>
             item &&
             typeof item.id === "string" &&
-            typeof item.type === "string" &&
+            (typeof item.type === "string" || typeof item.activity_type === "string") &&
             typeof item.title === "string" &&
-            typeof item.timestamp === "string",
+            (typeof item.timestamp === "string" || typeof item.created_at === "string"),
         )
         
         // Convert localStorage format to ActivityRecord format
         const convertedHistory: ActivityRecord[] = validHistory.map((item: any) => ({
           id: item.id,
-          activity_type: item.type === 'analysis' ? 'document_analysis' : 'document_summarization',
-          activity_type_display: item.type === 'analysis' ? 'Document Analysis' : 'Document Summarization',
+          activity_type: item.activity_type || (item.type === 'analysis' ? 'document_analysis' : 'document_summarization'),
+          activity_type_display: item.activity_type_display || (item.type === 'analysis' ? 'Document Analysis' : 'Document Summarization'),
           title: item.title,
-          description: item.title,
+          description: item.description || item.title,
           status: item.status === 'completed' ? 'success' : item.status || 'success',
-          status_display: item.status === 'completed' ? 'Success' : item.status || 'Success',
-          created_at: item.timestamp,
-          time_ago: formatTimeAgo(item.timestamp),
-          result_data: item.data,
-          file_name: item.data?.fileName,
-          file_size: item.data?.fileSize,
-          duration_seconds: null,
+          status_display: item.status_display || (item.status === 'completed' ? 'Success' : item.status || 'Success'),
+          created_at: item.created_at || item.timestamp,
+          time_ago: item.time_ago || formatTimeAgo(item.created_at || item.timestamp),
+          result_data: item.result_data || item.data,
+          file_name: item.file_name || item.data?.fileName,
+          file_size: item.file_size || item.data?.fileSize,
+          file_type: item.file_type,
+          duration_seconds: item.duration_seconds || null,
+          icon_name: item.icon_name || "FileText",
+          page_url: item.page_url,
+          additional_data: item.additional_data
         }))
         
         setActivities(convertedHistory)
@@ -583,6 +592,103 @@ function ClientHistory() {
               <div className="p-6 space-y-6">
                 {selectedItem.result_data && (
                   <>
+                    {/* Document Summary Display */}
+                    {selectedItem.result_data.summary && (
+                      <div className="space-y-4">
+                        {/* Quick Info */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                            {selectedItem.result_data.summary.document_type || "Document"}
+                          </Badge>
+                          {selectedItem.result_data.summary.urgency_level && (
+                            <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+                              {selectedItem.result_data.summary.urgency_level} Priority
+                            </Badge>
+                          )}
+                          {selectedItem.result_data.summary.language_complexity && (
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                              {selectedItem.result_data.summary.language_complexity} Complexity
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Simple Summary */}
+                        {selectedItem.result_data.summary.simple_summary && (
+                          <Card className="p-4 bg-gray-50 dark:bg-[#0D1B2A]/50">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6F1] mb-3">
+                              Simple Summary
+                            </h3>
+                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                              {selectedItem.result_data.summary.simple_summary}
+                            </p>
+                          </Card>
+                        )}
+
+                        {/* Detailed Summary */}
+                        {selectedItem.result_data.summary.detailed_summary && (
+                          <Card className="p-4 bg-gray-50 dark:bg-[#0D1B2A]/50">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6F1] mb-3">
+                              Detailed Summary
+                            </h3>
+                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                              {selectedItem.result_data.summary.detailed_summary}
+                            </p>
+                          </Card>
+                        )}
+
+                        {/* Key Points */}
+                        {selectedItem.result_data.summary.key_points && selectedItem.result_data.summary.key_points.length > 0 && (
+                          <Card className="p-4 bg-gray-50 dark:bg-[#0D1B2A]/50">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6F1] mb-3">
+                              Key Points
+                            </h3>
+                            <ul className="text-sm space-y-1">
+                              {selectedItem.result_data.summary.key_points.slice(0, 5).map((point: string, index: number) => (
+                                <li key={index} className="flex items-start gap-2 text-gray-600 dark:text-gray-300">
+                                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                                  {point}
+                                </li>
+                              ))}
+                              {selectedItem.result_data.summary.key_points.length > 5 && (
+                                <li className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                  +{selectedItem.result_data.summary.key_points.length - 5} more points
+                                </li>
+                              )}
+                            </ul>
+                          </Card>
+                        )}
+
+                        {/* Action Required */}
+                        {selectedItem.result_data.summary.action_required && (
+                          <Card className="p-4 bg-gray-50 dark:bg-[#0D1B2A]/50">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6F1] mb-3">
+                              Action Required
+                            </h3>
+                            <p className="text-gray-700 dark:text-gray-300">
+                              {selectedItem.result_data.summary.action_required}
+                            </p>
+                          </Card>
+                        )}
+
+                        {/* Metadata */}
+                        {selectedItem.result_data.metadata && (
+                          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <div className="flex gap-4 text-xs text-gray-500 dark:text-gray-400">
+                              {selectedItem.result_data.metadata.word_count && (
+                                <span>{selectedItem.result_data.metadata.word_count} words</span>
+                              )}
+                              {selectedItem.result_data.metadata.character_count && (
+                                <span>{selectedItem.result_data.metadata.character_count} characters</span>
+                              )}
+                              {selectedItem.result_data.input_mode && (
+                                <span>Input: {selectedItem.result_data.input_mode}</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Analysis Summary */}
                     {selectedItem.result_data.analysis_result?.summary && (
                       <Card className="p-4 bg-gray-50 dark:bg-[#0D1B2A]/50">
