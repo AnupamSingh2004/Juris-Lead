@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'document_summarizer_simple_screen.dart';
+import 'analyzer_screen.dart';
+import 'analysis_results_screen.dart';
+import '../services/api_service.dart';
+import '../models/analysis_models.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _startAnalysis() {
+  void _startAnalysis() async {
     if (_textController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -52,17 +57,48 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _isAnalyzing = true;
     });
 
-    // Navigate to analysis results
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AnalysisResultsScreen(text: _textController.text),
-      ),
-    ).then((_) {
+    try {
+      // Call the API to analyze the case
+      final analysisRequest = AnalysisRequest(
+        description: _textController.text.trim(),
+        detailed: true,
+      );
+
+      // Show a snackbar indicating the analysis is starting
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🧠 AI analysis in progress... This may take up to 2-3 minutes.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 5),
+        ),
+      );
+
+      final analysisResponse = await ApiService.analyzeCase(analysisRequest);
+
+      // Navigate to analysis results
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AnalysisResultsScreen(
+            analysisResponse: analysisResponse,
+            originalText: _textController.text.trim(),
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Analysis failed: ${e.toString()}'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
       setState(() {
         _isAnalyzing = false;
       });
-    });
+    }
   }
 
   @override
@@ -264,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    const Text('Analyzing...'),
+                                    const Text('Analyzing with AI...'),
                                   ],
                                 )
                               : Row(
@@ -306,7 +342,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       icon: Icons.upload_file_outlined,
                       title: 'Upload Document',
                       subtitle: 'Analyze legal documents',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DocumentSummarizerSimpleScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -315,7 +358,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       icon: Icons.voice_chat_outlined,
                       title: 'Voice Input',
                       subtitle: 'Speak your case',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AnalyzerScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -379,43 +429,6 @@ class _QuickActionCard extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurface.withOpacity(0.7),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Placeholder for Analysis Results Screen
-class AnalysisResultsScreen extends StatelessWidget {
-  final String text;
-
-  const AnalysisResultsScreen({super.key, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analysis Results'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Analysis in Progress',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Analyzing: $text',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 32),
-            const Center(
-              child: CircularProgressIndicator(),
             ),
           ],
         ),

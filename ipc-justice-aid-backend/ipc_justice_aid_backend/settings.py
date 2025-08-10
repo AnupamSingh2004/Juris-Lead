@@ -17,7 +17,7 @@ allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '')
 if allowed_hosts_env:
     ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',')]
 else:
-    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,10.0.2.2').split(',')
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,10.0.2.2,192.168.12.1,192.168.165.1,192.168.122.1,192.168.1.6').split(',')
 
 # Azure App Service specific settings
 AZURE_APP_SERVICE = os.getenv('AZURE_APP_SERVICE', 'False').lower() == 'true' or config('AZURE_APP_SERVICE', default=False, cast=bool)

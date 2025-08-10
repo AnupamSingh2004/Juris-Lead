@@ -20,6 +20,14 @@ class GoogleAuthConfig {
     return baseUrl!;
   }
 
+  // Alternative URLs for different environments
+  static List<String> get fallbackUrls => [
+    'http://10.0.2.2:8001/api/v1',  // Standard Android emulator
+    'http://10.0.3.2:8001/api/v1',  // Genymotion emulator
+    'http://192.168.12.1:8001/api/v1', // Host machine IP
+    'http://localhost:8001/api/v1',     // Localhost fallback
+  ];
+
   static String _throwMissingEnvError(String key) {
     throw Exception(
       'Missing required environment variable: $key\n'

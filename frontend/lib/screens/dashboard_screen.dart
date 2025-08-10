@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/risk_status_card.dart';
-import '../widgets/emergency_contacts_card.dart';
 import '../widgets/recent_notifications_card.dart';
-import '../services/health_prediction_service.dart';
 import '../services/location_service.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -122,10 +119,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 16),
               
               // Risk Status Card
-              RiskStatusCard(
-                healthPrediction: _healthPrediction,
-                isLoading: _isLoading,
-                onViewRiskMap: widget.onNavigateToRiskMap,
+              // Risk status placeholder - removed for legal app
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Case Analytics',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Your recent case analysis and legal insights',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               
@@ -134,7 +154,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 16),
               
               // Emergency Contacts
-              const EmergencyContactsCard(),
+              // Legal contacts placeholder - removed emergency contacts
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.contacts, color: Colors.orange.shade700),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Legal Contacts',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Quick access to your legal advisors and contacts',
+                      style: TextStyle(
+                        color: Colors.orange.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 16),
               
               // Recent Notifications
@@ -1137,7 +1191,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     String prediction = _healthPrediction!['prediction'];
     double confidence = _healthPrediction!['confidence'];
-    List<String> recommendations = HealthPredictionService.getRecommendations(prediction, confidence);
+    // Placeholder for legal recommendations
+    List<String> recommendations = [
+      'Consider consulting a legal expert',
+      'Review your case documentation',
+      'Stay updated with legal proceedings'
+    ];
 
     showDialog(
       context: context,
@@ -1204,7 +1263,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _currentPosition = await LocationService.getCurrentLocation();
       
       // Get health prediction
-      _healthPrediction = await HealthPredictionService.getCurrentHealthPrediction();
+      // Placeholder for legal prediction service
+      _healthPrediction = {
+        'success': true,
+        'prediction': 'case_analysis_ready',
+        'confidence': 0.85,
+        'message': 'Your legal case data is ready for analysis'
+      };
       
       // Update location name with area name
       if (_currentPosition != null) {

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'tool_detail_screen.dart';
+import 'analyzer_screen.dart';
+import 'document_summarizer_simple_screen.dart';
+import 'explore_legal_cases_screen.dart';
+import 'history_screen.dart';
 
 class ToolsScreen extends StatefulWidget {
   const ToolsScreen({super.key});
@@ -75,32 +79,32 @@ class _ToolsScreenState extends State<ToolsScreen> {
               childAspectRatio: 1.0,
               children: [
                 _ToolCard(
+                  icon: Icons.analytics_outlined,
+                  title: 'Legal Analyzer',
+                  description: 'AI case analysis',
+                  color: Colors.blue,
+                  onTap: () => _navigateToTool('Legal Analyzer'),
+                ),
+                _ToolCard(
                   icon: Icons.summarize_outlined,
                   title: 'Document Summarizer',
-                  description: 'AI-powered analysis',
-                  color: Colors.blue,
+                  description: 'Summarize documents',
+                  color: Colors.green,
                   onTap: () => _navigateToTool('Document Summarizer'),
                 ),
                 _ToolCard(
                   icon: Icons.explore_outlined,
-                  title: 'Legal Topics',
-                  description: 'Browse legal guides',
-                  color: Colors.green,
+                  title: 'Legal Cases',
+                  description: 'Explore precedents',
+                  color: Colors.orange,
                   onTap: () => _navigateToTool('Legal Topics Explorer'),
                 ),
                 _ToolCard(
-                  icon: Icons.search_outlined,
-                  title: 'Case Finder',
-                  description: 'Find precedents',
-                  color: Colors.orange,
-                  onTap: () => _navigateToTool('Case Precedent Finder'),
-                ),
-                _ToolCard(
-                  icon: Icons.description_outlined,
-                  title: 'Contract Generator',
-                  description: 'Create contracts',
+                  icon: Icons.history_outlined,
+                  title: 'My History',
+                  description: 'View past analysis',
                   color: Colors.purple,
-                  onTap: () => _navigateToTool('Contract Generator'),
+                  onTap: () => _navigateToTool('Legal Library'),
                 ),
               ],
             ),
@@ -117,24 +121,10 @@ class _ToolsScreenState extends State<ToolsScreen> {
             const SizedBox(height: 12),
             
             _ResourceCard(
-              icon: Icons.library_books_outlined,
-              title: 'Legal Library',
-              description: 'Access legal documents and acts',
-              onTap: () => _navigateToTool('Legal Library'),
-            ),
-            const SizedBox(height: 8),
-            _ResourceCard(
               icon: Icons.calculate_outlined,
               title: 'Legal Calculator',
               description: 'Calculate fees and penalties',
               onTap: () => _navigateToTool('Legal Calculator'),
-            ),
-            const SizedBox(height: 8),
-            _ResourceCard(
-              icon: Icons.forum_outlined,
-              title: 'Community Forum',
-              description: 'Discuss with legal experts',
-              onTap: () => _navigateToTool('Community Forum'),
             ),
           ],
         ),
@@ -143,11 +133,31 @@ class _ToolsScreenState extends State<ToolsScreen> {
   }
 
   void _navigateToTool(String toolName) {
+    Widget screen;
+    
+    switch (toolName) {
+      case 'Legal Analyzer':
+        screen = const AnalyzerScreen();
+        break;
+      case 'Document Summarizer':
+        screen = const DocumentSummarizerSimpleScreen();
+        break;
+      case 'Legal Topics Explorer':
+        screen = const ExploreLegalCasesScreen();
+        break;
+      case 'Case Precedent Finder':
+        screen = const AnalyzerScreen();
+        break;
+      case 'Legal Library':
+        screen = const HistoryScreen();
+        break;
+      default:
+        screen = ToolDetailScreen(toolName: toolName);
+    }
+    
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ToolDetailScreen(toolName: toolName),
-      ),
+      MaterialPageRoute(builder: (context) => screen),
     );
   }
 

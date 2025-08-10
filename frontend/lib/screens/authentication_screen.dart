@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/google_auth_service.dart';
 import '../services/mock_auth_service.dart';
-import 'main_navigation.dart';
+import 'main_navigation_simple.dart';
 
 class AuthenticationScreen extends StatefulWidget {
   const AuthenticationScreen({super.key});
@@ -202,12 +202,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen>
                                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
-                            : Image.asset(
-                                'assets/images/google_logo.png',
-                                height: 24,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.login, color: Colors.white);
-                                },
+                            : const Icon(
+                                Icons.login,
+                                color: Colors.white,
+                                size: 24,
                               ),
                         label: Text(
                           _isLoading ? 'Signing In...' : 'Continue with Google',
@@ -235,20 +233,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen>
                         'Continue without signing in',
                         style: TextStyle(
                           color: colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    // Debug Mock Auth Button (for development)
-                    TextButton(
-                      onPressed: _isLoading ? null : _tryMockSignIn,
-                      child: Text(
-                        'Try Mock Authentication (Dev)',
-                        style: TextStyle(
-                          color: Colors.orange.withValues(alpha: 0.8),
-                          fontSize: 12,
                         ),
                       ),
                     ),

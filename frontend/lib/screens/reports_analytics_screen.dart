@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/health_prediction_service.dart';
 
 class ReportsAnalyticsScreen extends StatefulWidget {
   final String userType;
@@ -28,7 +27,13 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
     });
     
     try {
-      final prediction = await HealthPredictionService.getCurrentHealthPrediction();
+      // Placeholder for legal analytics
+      final prediction = {
+        'success': true,
+        'prediction': 'legal_ready',
+        'confidence': 0.9,
+        'message': 'Legal analytics available'
+      };
       setState(() {
         currentPrediction = prediction;
         isLoading = false;
@@ -585,8 +590,9 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
     final location = currentPrediction!['location'];
     
     // Get risk level and color
-    final riskLevel = HealthPredictionService.getRiskLevel(prediction, confidence);
-    final riskColor = HealthPredictionService.getRiskColor(riskLevel);
+    // Placeholder for legal analysis level
+    final riskLevel = confidence > 0.8 ? 'High' : confidence > 0.6 ? 'Medium' : 'Low';
+    final riskColor = confidence > 0.8 ? Colors.green : confidence > 0.6 ? Colors.orange : Colors.red;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -673,7 +679,8 @@ class _ReportsAnalyticsScreenState extends State<ReportsAnalyticsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          ...HealthPredictionService.getRecommendations(prediction, confidence)
+          // Legal recommendations placeholder
+          ...['Consult with legal experts', 'Review case documentation', 'Stay updated with proceedings']
               .take(3)
               .map((rec) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),

@@ -218,22 +218,13 @@ export function Navigation() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <>
-                  <Button
-                    onClick={() => setShowLoginModal(true)}
-                    className="hidden lg:flex bg-[#007BFF] hover:bg-[#0056b3] dark:bg-[#00FFFF] dark:hover:bg-[#00CCCC] dark:text-[#0D1B2A] text-white prestigious-hover transition-all duration-300 dark:glow-cyan"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Client Login
-                  </Button>
-
-                  <Link
-                    href="/pro/dashboard"
-                    className="hidden lg:block text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300 prestigious-hover"
-                  >
-                    For Lawyers
-                  </Link>
-                </>
+                <Button
+                  onClick={() => setShowLoginModal(true)}
+                  className="hidden lg:flex bg-[#007BFF] hover:bg-[#0056b3] dark:bg-[#00FFFF] dark:hover:bg-[#00CCCC] dark:text-[#0D1B2A] text-white prestigious-hover transition-all duration-300 dark:glow-cyan"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Login / Signup
+                </Button>
               )}
 
               {/* Mobile Menu Button */}
@@ -344,15 +335,8 @@ export function Navigation() {
                         className="bg-[#007BFF] hover:bg-[#0056b3] dark:bg-[#00FFFF] dark:hover:bg-[#00CCCC] dark:text-[#0D1B2A] text-white w-full prestigious-hover dark:glow-cyan"
                       >
                         <User className="w-4 h-4 mr-2" />
-                        Client Login
+                        Login / Signup
                       </Button>
-                      <Link
-                        href="/pro/dashboard"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="text-sm font-medium text-gray-700 dark:text-[#E0E6F1] hover:text-[#007BFF] dark:hover:text-[#00FFFF] transition-all duration-300"
-                      >
-                        For Lawyers
-                      </Link>
                       
                       {/* Authentication Note */}
                       {!isAuthenticated && (

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import '../screens/dashboard_screen.dart';
-import '../screens/risk_map_screen.dart';
 import '../screens/alerts_screen.dart';
 import '../screens/chatbot_screen.dart';
 import '../screens/reports_analytics_screen.dart';
-import '../screens/profile_screen.dart';
+import '../screens/profile_screen_new_dynamic.dart';
 import '../screens/settings_screen.dart';
 import '../screens/about_help_screen.dart';
 import '../services/api_service.dart';
@@ -33,7 +32,16 @@ class _MainNavigationState extends State<MainNavigation> {
         onNavigateToRiskMap: () => _onItemTapped(1),
         onNavigateToAlerts: () => _onItemTapped(2),
       ),
-      RiskMapScreen(userType: widget.userType),
+      // Legal analytics placeholder screen
+      Container(
+        padding: const EdgeInsets.all(16),
+        child: const Center(
+          child: Text(
+            'Legal Analytics Coming Soon',
+            style: TextStyle(fontSize: 18),
+          ),
+        ),
+      ),
       AlertsScreen(userType: widget.userType),
       ChatbotScreen(userType: widget.userType),
       ReportsAnalyticsScreen(userType: widget.userType),
@@ -176,7 +184,7 @@ class _MainNavigationState extends State<MainNavigation> {
       children: [
         _buildMenuItem(Icons.person, 'Profile', () {
           Navigator.push(context, MaterialPageRoute(
-            builder: (context) => const ProfileScreen(),
+            builder: (context) => const ProfileScreenDynamic(),
           ));
         }),
         _buildMenuItem(Icons.settings, 'Settings', () {

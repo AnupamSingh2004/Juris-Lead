@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'health_prediction_service.dart';
 
 class AlertsService {
   // Alert severity levels based on prediction confidence
@@ -13,7 +12,12 @@ class AlertsService {
     
     try {
       // Get current health prediction
-      Map<String, dynamic> prediction = await HealthPredictionService.getCurrentHealthPrediction();
+      // Placeholder for legal alerts
+      Map<String, dynamic> prediction = {
+        'success': true,
+        'prediction': 'legal_ready',
+        'confidence': 0.75
+      };
       
       if (prediction['success'] == true) {
         String predictedDisease = prediction['prediction'] ?? 'Unknown';

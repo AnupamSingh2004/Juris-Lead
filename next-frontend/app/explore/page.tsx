@@ -106,9 +106,132 @@ export default function ExplorePage() {
   const [showIPCResults, setShowIPCResults] = useState(false)
   const [selectedIPCSection, setSelectedIPCSection] = useState<any>(null)
   const [showIPCModal, setShowIPCModal] = useState(false)
+  const [selectedTopic, setSelectedTopic] = useState<any>(null)
+  const [isTopicView, setIsTopicView] = useState(false)
+
+  // Map legal topics to related IPC keywords for filtering
+  const topicToIPCKeywords: { [key: number]: string[] } = {
+    1: [ // Criminal Law
+      'murder', 'culpable homicide', 'dowry death', 'hurt', 'grievous hurt', 'assault', 'wrongful restraint',
+      'wrongful confinement', 'kidnapping', 'abduction', 'rape', 'sexual assault', 'criminal intimidation',
+      'defamation', 'theft', 'extortion', 'robbery', 'dacoity', 'mischief', 'criminal trespass',
+      'house-trespass', 'lurking house-trespass', 'house-breaking', 'forgery', 'counterfeiting',
+      'criminal conspiracy', 'sedition', 'waging war', 'treason', 'rioting', 'unlawful assembly',
+      'affray', 'public nuisance', 'negligent act', 'rash act'
+    ],
+    2: [ // Contract Law  
+      'breach of contract', 'cheating', 'fraud', 'forgery', 'criminal breach of trust',
+      'misappropriation', 'falsification of accounts', 'criminal conspiracy', 'extortion',
+      'counterfeiting', 'using forged document', 'dishonest misappropriation'
+    ],
+    3: [ // Property Law
+      'theft', 'robbery', 'dacoity', 'extortion', 'criminal breach of trust', 'misappropriation',
+      'mischief', 'criminal trespass', 'house-trespass', 'lurking house-trespass', 'house-breaking',
+      'receiving stolen property', 'dishonestly receiving property', 'criminal misappropriation',
+      'forgery', 'using forged document'
+    ],
+    4: [ // Family Law
+      'dowry death', 'cruelty by husband', 'dowry', 'domestic violence', 'bigamy', 'adultery',
+      'kidnapping', 'abduction', 'rape', 'outraging modesty', 'sexual harassment', 'stalking',
+      'acid attack', 'causing miscarriage', 'concealment of birth', 'exposure of infants',
+      'infanticide', 'child abuse'
+    ],
+    5: [ // Employment Law
+      'wrongful restraint', 'wrongful confinement', 'criminal intimidation', 'extortion',
+      'criminal conspiracy', 'cheating', 'fraud', 'criminal breach of trust', 'theft',
+      'mischief', 'forgery', 'using forged document', 'falsification of accounts',
+      'sexual harassment', 'outraging modesty'
+    ],
+    6: [ // Consumer Protection
+      'cheating', 'fraud', 'criminal breach of trust', 'theft', 'misappropriation',
+      'forgery', 'using forged document', 'counterfeiting', 'criminal conspiracy',
+      'extortion', 'mischief', 'defamation', 'falsification of accounts',
+      'adulteration', 'selling noxious food'
+    ]
+  }
+
+  const handleTopicExplore = (topic: any) => {
+    setSelectedTopic(topic)
+    setIsTopicView(true)
+    setShowIPCResults(true)
+    
+    // Get related IPC sections for this topic
+    const relatedKeywords = topicToIPCKeywords[topic.id] || []
+    
+    const relatedIPCSections = ipcSections.filter((section: any) => {
+      if (!section.section || !section.title) return false
+      
+      return relatedKeywords.some(keyword => 
+        section.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        (section.description && section.description.toLowerCase().includes(keyword.toLowerCase())) ||
+        (section.keywords && Array.isArray(section.keywords) && 
+          section.keywords.some((sectionKeyword: string) => 
+            sectionKeyword.toLowerCase().includes(keyword.toLowerCase()) ||
+            keyword.toLowerCase().includes(sectionKeyword.toLowerCase())
+          )
+        ) ||
+        (section.category && section.category.toLowerCase().includes(keyword.toLowerCase()))
+      )
+    })
+    
+    // Sort by relevance and section number
+    const sortedSections = relatedIPCSections.sort((a: any, b: any) => {
+      // Sort by section number
+      const numA = parseInt(a.section.match(/\d+/)?.[0] || '0')
+      const numB = parseInt(b.section.match(/\d+/)?.[0] || '0')
+      return numA - numB
+    })
+    
+    setFilteredIPCSections(sortedSections)
+    setFilteredTopics([])
+  }
+
+  const handleBackToTopics = () => {
+    setSelectedTopic(null)
+    setIsTopicView(false)
+    setShowIPCResults(false)
+    setFilteredIPCSections([])
+    setFilteredTopics(legalTopics)
+    setSearchQuery("")
+    setSelectedCategory("All")
+  }
 
   const handleSearch = () => {
     try {
+      // Reset topic view when selecting "All" category or any non-IPC category
+      if (selectedCategory === "All" || (selectedCategory !== "IPC Sections" && !isTopicView)) {
+        setIsTopicView(false)
+        setSelectedTopic(null)
+        setShowIPCResults(false)
+      }
+
+      // If we're in topic view and user searches, stay in topic view but filter
+      if (isTopicView && selectedTopic) {
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase().trim()
+          const searchTerms = query.split(/\s+/).filter(term => term.length > 2)
+          
+          const filteredSections = filteredIPCSections.filter((section: any) =>
+            searchTerms.some(term =>
+              section.section.toLowerCase().includes(term) ||
+              section.title.toLowerCase().includes(term) ||
+              (section.description && section.description.toLowerCase().includes(term)) ||
+              (section.category && section.category.toLowerCase().includes(term)) ||
+              (section.keywords && Array.isArray(section.keywords) && 
+                section.keywords.some((keyword: string) => 
+                  keyword.toLowerCase().includes(term)
+                ))
+            )
+          )
+          
+          setFilteredIPCSections(filteredSections)
+        } else {
+          // Reset to show all topic-related sections
+          handleTopicExplore(selectedTopic)
+        }
+        return
+      }
+
       let filteredLegalTopics = legalTopics
       let filteredIPC: any[] = []
       let showIPC = false
@@ -245,6 +368,8 @@ export default function ExplorePage() {
           })
           
           showIPC = true
+          setIsTopicView(false) // Exit topic view when searching IPC
+          setSelectedTopic(null)
         }
       }
 
@@ -257,6 +382,8 @@ export default function ExplorePage() {
           return numA - numB
         })
         showIPC = true
+        setIsTopicView(false) // Exit topic view when browsing all IPC
+        setSelectedTopic(null)
       }
 
       // Filter legal topics if not exclusively searching IPC
@@ -421,6 +548,10 @@ export default function ExplorePage() {
                       size="sm"
                       onClick={() => {
                         setSelectedCategory(category)
+                        // Reset topic view when changing categories
+                        if (isTopicView) {
+                          handleBackToTopics()
+                        }
                         setTimeout(handleSearch, 0)
                       }}
                       className={
@@ -525,7 +656,7 @@ export default function ExplorePage() {
                         >
                           <Button
                             className="w-full bg-gradient-to-r from-[#007BFF] to-[#0056b3] dark:from-[#00FFFF] dark:to-[#00CCCC] hover:from-[#0056b3] hover:to-[#004085] dark:hover:from-[#00CCCC] dark:hover:to-[#00AAAA] text-white dark:text-[#0D1B2A] shadow-lg hover:shadow-xl transition-all duration-300 prestigious-hover dark:glow-cyan group/btn"
-                            onClick={() => (window.location.href = `/explore/${topic.id}`)}
+                            onClick={() => handleTopicExplore(topic)}
                           >
                             <span className="flex items-center justify-center gap-2">
                               Explore Topic
@@ -548,12 +679,60 @@ export default function ExplorePage() {
                 transition={{ delay: 0.3 }}
               >
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-[#E0E6F1] mb-2">
-                    IPC Sections ({filteredIPCSections.length} found)
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Click on any section to view detailed information including punishments and case studies
-                  </p>
+                  {isTopicView && selectedTopic ? (
+                    <div className="mb-4">
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <Button
+                          onClick={handleBackToTopics}
+                          variant="outline"
+                          className="border-[#007BFF] dark:border-[#00FFFF] text-[#007BFF] dark:text-[#00FFFF] hover:bg-[#007BFF] dark:hover:bg-[#00FFFF] hover:text-white dark:hover:text-[#0D1B2A] prestigious-hover bg-transparent mb-4"
+                        >
+                          <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+                          Back to Topics
+                        </Button>
+                      </motion.div>
+                      <div className="flex items-center gap-4 mb-4">
+                        <motion.div
+                          className={`p-3 bg-gradient-to-r ${selectedTopic.color} rounded-2xl shadow-lg`}
+                          animate={{
+                            boxShadow: [
+                              "0 0 20px rgba(0, 123, 255, 0.3)",
+                              "0 0 40px rgba(0, 255, 255, 0.4)",
+                              "0 0 20px rgba(0, 123, 255, 0.3)",
+                            ],
+                          }}
+                          transition={{
+                            duration: 3,
+                            repeat: Number.POSITIVE_INFINITY,
+                            ease: "easeInOut",
+                          }}
+                        >
+                          <div className="text-white">{selectedTopic.icon}</div>
+                        </motion.div>
+                        <div>
+                          <h2 className="text-3xl font-bold text-gray-900 dark:text-[#E0E6F1]">
+                            {selectedTopic.title} - IPC Sections
+                          </h2>
+                          <p className="text-gray-600 dark:text-gray-300">
+                            {filteredIPCSections.length} relevant IPC sections found for {selectedTopic.title}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-[#E0E6F1] mb-2">
+                        IPC Sections ({filteredIPCSections.length} found)
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        Click on any section to view detailed information including punishments and case studies
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -634,9 +813,22 @@ export default function ExplorePage() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
                 <BookOpen className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-[#E0E6F1] mb-2">No results found</h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Try searching for IPC sections (e.g., "Section 302", "420") or legal topics
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {isTopicView && selectedTopic 
+                    ? `No IPC sections found matching your search within ${selectedTopic.title}`
+                    : "Try searching for IPC sections (e.g., \"Section 302\", \"420\") or legal topics"
+                  }
                 </p>
+                {isTopicView && selectedTopic && (
+                  <Button
+                    onClick={handleBackToTopics}
+                    variant="outline"
+                    className="border-[#007BFF] dark:border-[#00FFFF] text-[#007BFF] dark:text-[#00FFFF] hover:bg-[#007BFF] dark:hover:bg-[#00FFFF] hover:text-white dark:hover:text-[#0D1B2A] prestigious-hover bg-transparent"
+                  >
+                    <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+                    Back to Topics
+                  </Button>
+                )}
               </motion.div>
             )}
 
