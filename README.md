@@ -76,11 +76,12 @@ graph TD
 
 ### AI & Integration
 
-- ![Ollama](https://img.shields.io/badge/Ollama-Local_AI-FF6B6B?style=flat&logo=ai&logoColor=white) **Ollama** - Local AI model serving for IPC analysis
+- ![Ollama](https://img.shields.io/badge/Ollama-Local_AI-FF6B6B?style=flat&logo=ai&logoColor=white) **Ollama** - Custom fine-tuned IPC legal model in Docker container
 - ![Gemini](https://img.shields.io/badge/Gemini_AI-4285F4?style=flat&logo=google&logoColor=white) **Gemini AI** - Chatbot and conversational AI
 - ![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=flat&logo=google&logoColor=white) **Google OAuth 2.0** - Secure authentication
 - **OCR Service** - Document text extraction using Tesseract
 - **PDF Generation** - Legal report generation with ReportLab
+- **Custom IPC Model** - Fine-tuned for Indian legal analysis (also supports qwen3, llama2, etc.)
 
 ### DevOps & Deployment
 
@@ -93,8 +94,7 @@ graph TD
 
 ### Prerequisites
 
-- ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) **Docker & Docker Compose** (Required - Backend runs in Docker)
-- ![Ollama](https://img.shields.io/badge/Ollama-Required-FF6B6B?style=flat&logo=ai&logoColor=white) **Ollama** installed locally for AI services
+- ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) **Docker & Docker Compose** (Required - All services run in containers)
 - ![Node.js](https://img.shields.io/badge/Node.js-18+-43853D?style=flat&logo=node.js&logoColor=white) Node.js 18+ (for Next.js development)
 - ![Flutter](https://img.shields.io/badge/Flutter-3.8.1+-02569B?style=flat&logo=flutter&logoColor=white) Flutter SDK (for mobile development)
 - ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white) Python 3.11+ (optional - for local Django development)
@@ -117,25 +117,17 @@ graph TD
    cp next-frontend/.env.local.example next-frontend/.env.local
    ```
 
-3. **Start Ollama AI Service**
+3. **Start the Complete Stack with Docker**
 
    ```bash
-   # Install and start Ollama (if not already installed)
-   # Visit https://ollama.ai for installation instructions
-   ollama serve
-   
-   # In another terminal, pull the required model
-   ollama pull llama2
-   ```
-
-4. **Run the Complete Stack with Docker**
-
-   ```bash
-   # This will start Django backend in Docker along with PostgreSQL and Redis
+   # This will start Django backend, PostgreSQL, Redis, and Ollama AI in Docker
    docker-compose up --build
+   
+   # The custom fine-tuned IPC model will be automatically loaded
+   # You can also use other models like qwen3, llama2, etc.
    ```
 
-5. **Access the applications**
+4. **Access the applications**
    - Next.js Web Frontend: <http://localhost:3000>
    - Django API Documentation: <http://localhost:8000/api/docs/>
    - Django Admin Panel: <http://localhost:8000/admin/>
@@ -145,13 +137,16 @@ graph TD
 #### Backend (Django API via Docker) - **Recommended**
 
 ```bash
-# Backend runs in Docker with PostgreSQL and Redis
+# Complete stack runs in Docker: Django, PostgreSQL, Redis, and Ollama
 cd ipc-justice-aid-backend
 docker-compose up --build
 
 # For database migrations (run in Docker container)
 docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
+
+# Ollama with custom IPC model runs in its own container
+# You can switch models by updating OLLAMA_MODEL_NAME in .env
 ```
 
 #### Alternative: Local Django Development
@@ -186,12 +181,15 @@ flutter run
 
 ### Docker Services
 
-The backend runs in a Docker environment that includes:
+The application runs in a containerized environment that includes:
 
 - **Django Web Server** - Main API service
 - **PostgreSQL Database** - Primary data storage
 - **Redis Cache** - Session management and caching
-- **Ollama Integration** - Connects to host Ollama service for AI
+- **Ollama Container** - Custom fine-tuned IPC legal analysis model
+  - Includes our custom fine-tuned model for Indian legal analysis
+  - Also supports other models like qwen3, llama2, codellama, etc.
+  - Can be swapped with different Ollama models as needed
 
 ### Environment Variables
 
@@ -215,9 +213,10 @@ POSTGRES_PORT=5432
 # Redis Configuration (Docker)
 REDIS_URL=redis://redis:6379/1
 
-# Ollama AI Configuration (connects to host)
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-OLLAMA_MODEL_NAME=llama2
+# Ollama AI Configuration (Docker container)
+OLLAMA_BASE_URL=http://ollama:11434
+OLLAMA_MODEL_NAME=custom-ipc-model
+# Alternative models: qwen3, llama2, codellama, etc.
 
 # Gemini AI for Chatbot
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -379,13 +378,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Django REST Framework** - Robust API development tools
 - **Google AI** - Gemini API for conversational AI
 - **Open Source Community** - Various libraries and tools used
-
-## 📞 Support & Contact
-
-- 📧 **Email**: [support@juris-lead.com](mailto:support@juris-lead.com)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/AnupamSingh2004/ipc-justice-aid/issues)
-- 📖 **Documentation**: [Project Wiki](https://github.com/AnupamSingh2004/ipc-justice-aid/wiki)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/AnupamSingh2004/ipc-justice-aid/discussions)
 
 ---
 
