@@ -10,6 +10,10 @@ __pycache__/
 RAILWAY_ENV_COMPLETE.txt
 RAILWAY_DEPLOYMENT_GUIDE.md
 
+
+RAILWAY_DEPLOYMENT_GUIDE.md
+
+DEPLOYMENT_CHECKLIST.md
 .env.docker
 # Distribution / packaging
 .Python
