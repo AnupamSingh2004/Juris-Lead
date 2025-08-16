@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from simple_health import simple_health_check
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
@@ -26,8 +27,9 @@ urlpatterns = [
     path('api/legal/', include('ipc_analysis.urls')),
     path('api/profile/', include('profile_page.urls')),
     
-    # Health check
+    # Health checks
     path('api/health/', health_check, name='health_check'),
+    path('api/v1/health/', simple_health_check, name='simple_health_check'),
     path('health/', health_check, name='health_check_root'),
     
     # OAuth and social auth
