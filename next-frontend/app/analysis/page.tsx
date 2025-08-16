@@ -23,6 +23,7 @@ function AnalysisContent() {
   useEffect(() => {
     // Simulate analysis processing
     const timer = setTimeout(() => {
+      // @ts-ignore
       setAnalysisData({
         incident: query,
         ipcSections: [

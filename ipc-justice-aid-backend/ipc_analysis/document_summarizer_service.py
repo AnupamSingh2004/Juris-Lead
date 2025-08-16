@@ -1,6 +1,4 @@
-"""
-Document Summarizer Service for processing and summarizing legal documents
-"""
+
 import logging
 import json
 from typing import Dict, Any, Optional
@@ -13,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class DocumentSummarizerService:
-    """Service for summarizing legal documents using AI"""
     
     def __init__(self):
         self.ocr_service = OCRService()

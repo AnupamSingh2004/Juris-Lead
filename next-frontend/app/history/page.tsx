@@ -72,7 +72,6 @@ const STATUS_ICONS = {
   cancelled: AlertTriangle,
 }
 
-// Component to display document summary in a nice format
 const SummaryDisplay = ({ summary }: { summary: any }) => {
   if (!summary?.summary) {
     return <p className="text-gray-500 dark:text-gray-400">No summary data available</p>

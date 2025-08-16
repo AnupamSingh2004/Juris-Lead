@@ -74,10 +74,8 @@ function AnalyzerPage() {
   const [isExtractingImage, setIsExtractingImage] = useState(false)
   const [extractedText, setExtractedText] = useState<string>("")
 
-  // Initialize activity tracker
   const { trackActivity } = useActivityTracker()
 
-  // Check backend connection on component mount
   useEffect(() => {
     checkBackendConnection()
   }, [])
@@ -90,14 +88,12 @@ function AnalyzerPage() {
     } catch (error) {
       console.error('Backend connection failed:', error)
       setBackendStatus('disconnected')
-      
-      // Don't fail silently - still allow analysis attempts
+
       console.warn('Health check failed, but analysis may still work')
     }
   }
 
   useEffect(() => {
-    // Defensive programming: Check for restore parameter safely
     try {
       const urlParams = new URLSearchParams(window.location.search)
       const restoreId = urlParams.get("restore")
@@ -121,14 +117,12 @@ function AnalyzerPage() {
       }
     } catch (error) {
       console.error("Error restoring session:", error)
-      // Continue with empty state - don't crash
     }
   }, [])
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
         alert("File size must be less than 10MB")
         return
@@ -136,8 +130,7 @@ function AnalyzerPage() {
       
       setSelectedFile(file)
       setExtractedText("")
-      
-      // If it's a PDF file, extract text automatically
+
       if (isPDFFile(file) && isPDFExtractionSupported()) {
         setIsExtractingPDF(true)
         try {
@@ -152,8 +145,7 @@ function AnalyzerPage() {
           setIsExtractingPDF(false)
         }
       }
-      
-      // If it's an image file, extract text using OCR
+
       else if (isImageFile(file) && isImageExtractionSupported()) {
         setIsExtractingImage(true)
         try {
@@ -176,7 +168,6 @@ function AnalyzerPage() {
   }
 
   const handleAnalysis = async () => {
-    // Defensive validation
     if (inputType === "text" && !textInput.trim()) {
       alert("Please enter a description of your incident")
       return
@@ -187,10 +178,9 @@ function AnalyzerPage() {
       return
     }
 
-    // Check backend connection (but don't block analysis)
     if (backendStatus === 'disconnected') {
       console.warn("Health check failed, but attempting analysis anyway")
-      // Don't return here - still try the analysis
+
     }
 
     setIsAnalyzing(true)
@@ -198,7 +188,6 @@ function AnalyzerPage() {
     setCompletedSteps([])
     setAnalysisError(null)
 
-    // Simulate analysis steps for UI feedback
     const steps = [
       "Connecting to AI analysis service...",
       "Processing case description...",
@@ -208,7 +197,6 @@ function AnalyzerPage() {
       "Finalizing analysis report..."
     ]
 
-    // Show step progress
     const stepInterval = setInterval(() => {
       setCompletedSteps(prev => {
         if (prev.length < steps.length - 1) {
@@ -220,8 +208,7 @@ function AnalyzerPage() {
 
     try {
       let caseDescription = textInput.trim()
-      
-      // Handle file upload - use extracted text for PDFs
+
       if (inputType === "pdf" && selectedFile) {
         if (extractedText) {
           caseDescription = extractedText
@@ -238,10 +225,9 @@ function AnalyzerPage() {
 
       const analysisRequest: AnalysisRequest = {
         case_description: caseDescription,
-        user_type: 'citizen' // Default to citizen, could be made configurable
+        user_type: 'citizen'
       }
 
-      // Call real backend API
       const backendResponse = await ApiService.analyzeCase(analysisRequest)
       
       // Transform backend response to frontend format

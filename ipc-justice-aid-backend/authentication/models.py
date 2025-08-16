@@ -38,7 +38,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
 
     # Authentication fields
-    is_active = models.BooleanField(default=False)  # User needs to verify email first
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     email_verified = models.BooleanField(default=False)

@@ -5,7 +5,7 @@ export const API_CONFIG = {
     ANALYZE_CASE: '/leads/analyze-case/', // Public endpoint for citizens to analyze cases
     EXTRACT_TEXT: '/legal/extract-text/', // OCR endpoint for image text extraction
     SUMMARIZE_DOCUMENT: '/legal/summarize-document/', // Document summarizer endpoint
-    HEALTH_CHECK: '/legal/health/', // Correct health check endpoint
+    HEALTH_CHECK: '/legal/health/',
     LOGIN: '/auth/login/',
     GOOGLE_LOGIN: '/auth/google-login/',
     LOGOUT: '/auth/logout/',
@@ -17,7 +17,7 @@ export const API_CONFIG = {
     HISTORY_CLEAR: '/auth/history/activities/clear/',
     HISTORY_EXPORT: '/auth/history/activities/export/',
   },
-  TIMEOUT: 300000, // 5 minutes for AI analysis
+  TIMEOUT: 300000,
 };
 export interface ApiErrorData {
   message: string;
