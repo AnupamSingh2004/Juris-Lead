@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+import dj_database_url
 
 from decouple import config
 
@@ -102,20 +103,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ipc_justice_aid_backend.wsgi.application'
 
-# Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST', default='localhost'),
-        'PORT': config('DATABASE_PORT', default='5432'),
-        'OPTIONS': {
-            'sslmode': config('DATABASE_SSL_MODE', default='prefer'),
-        } if not DEBUG else {},
+# Database configuration - supports both local Docker and Heroku
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Production (Heroku) - Use DATABASE_URL provided by Heroku Postgres
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    # Local Development - Use Docker PostgreSQL with individual variables
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DATABASE_NAME'),
+            'USER': config('DATABASE_USER'),
+            'PASSWORD': config('DATABASE_PASSWORD'),
+            'HOST': config('DATABASE_HOST', default='localhost'),
+            'PORT': config('DATABASE_PORT', default='5432'),
+            'OPTIONS': {
+                'sslmode': config('DATABASE_SSL_MODE', default='prefer'),
+            } if not DEBUG else {},
+        }
+    }
 
 # Custom User Model
 AUTH_USER_MODEL = 'authentication.User'
@@ -417,6 +427,27 @@ OLLAMA_SETTINGS = {
 # Add Ollama settings as direct attributes for easier access
 OLLAMA_BASE_URL = OLLAMA_SETTINGS['BASE_URL']
 OLLAMA_MODEL_NAME = OLLAMA_SETTINGS['MODEL_NAME']
+OLLAMA_TIMEOUT = OLLAMA_SETTINGS['TIMEOUT']
+OLLAMA_MAX_RETRIES = OLLAMA_SETTINGS['MAX_RETRIES']
+
+# Hugging Face settings for production deployment
+HUGGINGFACE_SETTINGS = {
+    'API_TOKEN': config('HUGGINGFACE_API_TOKEN', default=None),
+    'MODEL_ID': config('HUGGINGFACE_MODEL_ID', default='mistralai/Mistral-7B-Instruct-v0.1'),
+    'TIMEOUT': config('HUGGINGFACE_TIMEOUT', default=60, cast=int),
+    'MAX_RETRIES': config('HUGGINGFACE_MAX_RETRIES', default=3, cast=int),
+}
+
+# Add Hugging Face settings as direct attributes for easier access
+HUGGINGFACE_API_TOKEN = HUGGINGFACE_SETTINGS['API_TOKEN']
+HUGGINGFACE_MODEL_ID = HUGGINGFACE_SETTINGS['MODEL_ID']
+HUGGINGFACE_TIMEOUT = HUGGINGFACE_SETTINGS['TIMEOUT']
+HUGGINGFACE_MAX_RETRIES = HUGGINGFACE_SETTINGS['MAX_RETRIES']
+
+# Analysis service configuration
+# Options: 'auto', 'ollama', 'huggingface'
+# 'auto' will choose based on environment (dev=ollama, prod=huggingface)
+ANALYSIS_ENVIRONMENT = config('ANALYSIS_ENVIRONMENT', default='auto')
 
 # Legal analysis settings
 LEGAL_ANALYSIS_SETTINGS = {

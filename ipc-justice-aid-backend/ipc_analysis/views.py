@@ -12,13 +12,14 @@ from .serializers import (
     CaseAnalysisRequestSerializer, CaseAnalysisResponseSerializer, IPCSectionSerializer
 )
 from .services import OllamaService
+from .adaptive_service import adaptive_analysis_service
 from .ocr_service import OCRService
 from .document_summarizer_service import DocumentSummarizerService
 
 
 class AnalyzeCaseView(APIView):
     """
-    Main endpoint for analyzing legal cases using Ollama model
+    Main endpoint for analyzing legal cases using adaptive AI service (Ollama/HuggingFace)
     """
     permission_classes = [permissions.IsAuthenticated]
     
@@ -41,9 +42,8 @@ class AnalyzeCaseView(APIView):
                     case_description=case_description
                 )
                 
-                # Call Ollama service
-                ollama_service = OllamaService()
-                result = ollama_service.analyze_case(case_description)
+                # Call adaptive analysis service (Ollama for dev, HuggingFace for prod)
+                result = adaptive_analysis_service.analyze_case(case_description)
                 
                 if not result['success']:
                     return Response(
@@ -168,12 +168,13 @@ def health_check(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def ollama_health_check(request):
-    """Check Ollama service health"""
-    ollama_service = OllamaService()
-    health_status = ollama_service.health_check()
+    """Check AI analysis service health (Ollama/HuggingFace)"""
+    health_status = adaptive_analysis_service.health_check()
+    service_info = adaptive_analysis_service.get_service_info()
     
     return Response({
-        'ollama_service': health_status,
+        'analysis_service': health_status,
+        'service_info': service_info,
         'timestamp': timezone.now()
     })
 

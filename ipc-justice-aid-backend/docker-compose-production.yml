@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: ipc_justice_aid_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-ipc_justice_aid}
+      POSTGRES_USER: ${DATABASE_USER:-ipc_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-ipc_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - ipc_justice_aid_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ipc_justice_aid_redis_prod
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ipc_justice_aid_network
+
+  web:
+    build: .
+    container_name: ipc_justice_aid_web_prod
+    restart: always
+    volumes:
+      - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-ipc-justice-aid-secret-key}
+      - DATABASE_NAME=${DATABASE_NAME:-ipc_justice_aid}
+      - DATABASE_USER=${DATABASE_USER:-ipc_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ipc_password}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      # AI Analysis Configuration
+      - ANALYSIS_ENVIRONMENT=${ANALYSIS_ENVIRONMENT:-huggingface}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN}
+      - HUGGINGFACE_MODEL_ID=${HUGGINGFACE_MODEL_ID:-microsoft/DialoGPT-medium}
+      - HUGGINGFACE_TIMEOUT=${HUGGINGFACE_TIMEOUT:-30}
+      - HUGGINGFACE_MAX_RETRIES=${HUGGINGFACE_MAX_RETRIES:-3}
+    env_file:
+      - .env.production
+    networks:
+      - ipc_justice_aid_network
+
+  celery_worker:
+    build: .
+    container_name: ipc_justice_aid_celery_worker_prod
+    restart: always
+    command: celery -A ipc_justice_aid_backend worker --loglevel=info
+    volumes:
+      - .:/app
+      - media_volume:/app/media
+    depends_on:
+      - db
+      - redis
+      - web
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-ipc-justice-aid-secret-key}
+      - DATABASE_NAME=${DATABASE_NAME:-ipc_justice_aid}
+      - DATABASE_USER=${DATABASE_USER:-ipc_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ipc_password}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      # AI Analysis Configuration
+      - ANALYSIS_ENVIRONMENT=${ANALYSIS_ENVIRONMENT:-huggingface}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN}
+      - HUGGINGFACE_MODEL_ID=${HUGGINGFACE_MODEL_ID:-microsoft/DialoGPT-medium}
+    env_file:
+      - .env.production
+    networks:
+      - ipc_justice_aid_network
+
+  celery_beat:
+    build: .
+    container_name: ipc_justice_aid_celery_beat_prod
+    restart: always
+    command: celery -A ipc_justice_aid_backend beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - web
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY:-ipc-justice-aid-secret-key}
+      - DATABASE_NAME=${DATABASE_NAME:-ipc_justice_aid}
+      - DATABASE_USER=${DATABASE_USER:-ipc_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ipc_password}
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - .env.production
+    networks:
+      - ipc_justice_aid_network
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+  redis_data:
+
+networks:
+  ipc_justice_aid_network:
+    driver: bridge

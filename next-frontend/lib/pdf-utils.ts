@@ -1,10 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist'
-
-// Configure the worker to use the local copy with matching version
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
-}
-
 export interface PDFExtractionResult {
   text: string;
   pageCount: number;
@@ -18,6 +11,14 @@ export interface PDFExtractionResult {
  */
 export async function extractTextFromPDF(file: File): Promise<PDFExtractionResult> {
   try {
+    // Dynamic import to avoid SSR issues
+    const pdfjsLib = await import('pdfjs-dist');
+    
+    // Configure the worker to use the local copy with matching version
+    if (typeof window !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+    }
+    
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
     

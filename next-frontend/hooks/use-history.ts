@@ -82,7 +82,7 @@ export const useHistory = () => {
   const [error, setError] = useState<string | null>(null)
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('access_token') // Use correct token key
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null // Use correct token key
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : '',
@@ -91,6 +91,7 @@ export const useHistory = () => {
 
   const getLocalHistory = (): ActivityRecord[] => {
     try {
+      if (typeof window === 'undefined') return []
       const localData = localStorage.getItem("document-summaries")
       if (localData) {
         return JSON.parse(localData)
@@ -344,8 +345,8 @@ export const useActivityTracker = () => {
       await createActivity({
         activity_type: activityType,
         title,
-        page_url: window.location.href,
-        referrer_url: document.referrer,
+        page_url: typeof window !== 'undefined' ? window.location.href : '',
+        referrer_url: typeof document !== 'undefined' ? document.referrer : '',
         duration_seconds: Math.floor((Date.now() - startTime) / 1000),
         ...options,
       })
