@@ -4,8 +4,8 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "./railway-startup.sh",
-    "healthcheckPath": "/api/v1/health/",
+    "startCommand": "./debug-startup.sh",
+    "healthcheckPath": "/api/v1/debug/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
