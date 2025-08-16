@@ -18,12 +18,14 @@ RUN apt-get update \
         netcat-traditional \
         tesseract-ocr \
         tesseract-ocr-eng \
-        libgl1-mesa-glx \
+        libgl1-mesa-dri \
         libglib2.0-0 \
         libsm6 \
         libxext6 \
         libxrender-dev \
         libgomp1 \
+        libgthread-2.0-0 \
+        libgtk-3-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
