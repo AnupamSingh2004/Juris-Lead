@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from simple_health import simple_health_check
 from debug_health import debug_health_check
+from health_check import health_check as production_health_check
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
@@ -30,7 +31,7 @@ urlpatterns = [
     
     # Health checks
     path('api/health/', health_check, name='health_check'),
-    path('api/v1/health/', simple_health_check, name='simple_health_check'),
+    path('api/v1/health/', production_health_check, name='production_health_check'),
     path('api/v1/debug/', debug_health_check, name='debug_health_check'),
     path('health/', health_check, name='health_check_root'),
     

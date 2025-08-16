@@ -1,14 +1,35 @@
 [phases.setup]
-nixPkgs = ["python39", "postgresql", "tesseract", "pkg-config", "libpng", "libjpeg", "freetype", "fontconfig"]
+nixPkgs = [
+  "python39", 
+  "postgresql", 
+  "tesseract", 
+  "pkg-config", 
+  "libpng", 
+  "libjpeg", 
+  "freetype", 
+  "fontconfig",
+  "libgl1-mesa-dri",
+  "libglib2.0-0",
+  "libsm6",
+  "libxext6", 
+  "libxrender-dev",
+  "libgomp1",
+  "libgthread-2.0-0"
+]
 
 [phases.install]
-cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
+cmds = [
+  "pip install --upgrade pip setuptools wheel",
+  "pip install --no-cache-dir -r requirements.txt"
+]
 
 [phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
+cmds = [
+  "python manage.py collectstatic --noinput --settings=ipc_justice_aid_backend.railway_settings"
+]
 
 [start]
-cmd = "python manage.py migrate && gunicorn ipc_justice_aid_backend.wsgi:application --bind 0.0.0.0:$PORT"
+cmd = "./railway-startup.sh"
 
 [variables]
 NIXPACKS_PYTHON_VERSION = "3.11"
