@@ -5,10 +5,10 @@ services:
     buildCommand: "./render-build.sh"
     startCommand: "gunicorn ipc_justice_aid_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --timeout 300"
     plan: starter
-    healthCheckPath: /legal/health/
+    healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
-        value: "3.11.0"
+        value: "3.11.7"
       - key: DEBUG
         value: "False"
       - key: ANALYSIS_ENVIRONMENT

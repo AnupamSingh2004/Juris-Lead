@@ -31,12 +31,15 @@ google-auth-httplib2==0.1.1
 # HTTP Requests
 requests==2.31.0
 
+# AI Services
+google-generativeai==0.3.2
+
 # Utilities
 django-extensions==3.2.3
 django-ratelimit==4.1.0
 cryptography==41.0.7
 pyjwt==2.8.0
-Pillow==10.1.0
+Pillow==10.3.0
 
 # PDF Generation
 reportlab==4.0.7
@@ -44,9 +47,9 @@ WeasyPrint==60.2
 PyPDF2==3.0.1
 
 # OCR and Image Processing (Optional - comment out if not needed)
-pytesseract==0.3.10
-opencv-python==4.8.1.78
-numpy==1.24.3
+# pytesseract==0.3.10
+# opencv-python==4.8.1.78
+# numpy==1.24.3
 
 # AI/ML - Hugging Face API (Production)
 huggingface-hub==0.19.4

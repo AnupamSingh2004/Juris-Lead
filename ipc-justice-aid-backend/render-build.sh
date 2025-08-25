@@ -20,7 +20,7 @@ fi
 
 # Set environment for production
 export DEBUG=False
-export ANALYSIS_ENVIRONMENT=huggingface
+export ANALYSIS_ENVIRONMENT=gemini
 
 # Collect static files for Django
 echo "📁 Collecting static files..."
