@@ -1,0 +1,118 @@
+# Azure DevOps Pipeline for IPC Justice Aid Backend
+# This pipeline builds the Docker image and deploys to Azure Container Apps
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - ipc-justice-aid-backend/*
+
+variables:
+  - group: 'ipc-justice-aid-variables'
+  - name: containerRegistry
+    value: 'ipcjusticeaidacr.azurecr.io'
+  - name: imageRepository
+    value: 'ipc-justice-aid'
+  - name: dockerfilePath
+    value: 'ipc-justice-aid-backend/Dockerfile'
+  - name: tag
+    value: '$(Build.BuildId)'
+  - name: resourceGroup
+    value: 'ipc-justice-aid-rg'
+  - name: containerAppName
+    value: 'ipc-justice-aid-app'
+
+stages:
+- stage: Build
+  displayName: 'Build and Push Docker Image'
+  jobs:
+  - job: Build
+    displayName: 'Build'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureCLI@2
+      displayName: 'Build and push Docker image'
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        workingDirectory: $(System.DefaultWorkingDirectory)/ipc-justice-aid-backend
+        inlineScript: |
+          # Login to ACR
+          az acr login --name $(containerRegistry)
+          
+          # Build and push image with build ID tag
+          docker build -t $(containerRegistry)/$(imageRepository):$(tag) .
+          docker push $(containerRegistry)/$(imageRepository):$(tag)
+          
+          # Tag and push as latest
+          docker tag $(containerRegistry)/$(imageRepository):$(tag) $(containerRegistry)/$(imageRepository):latest
+          docker push $(containerRegistry)/$(imageRepository):latest
+
+- stage: Deploy
+  displayName: 'Deploy to Azure Container Apps'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: Deploy
+    displayName: 'Deploy'
+    environment: 'production'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            displayName: 'Update Container App'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Update container app with new image
+                az containerapp update \
+                  --name $(containerAppName) \
+                  --resource-group $(resourceGroup) \
+                  --image $(containerRegistry)/$(imageRepository):$(tag)
+                
+                # Wait for deployment to complete
+                echo "Waiting for deployment to complete..."
+                sleep 30
+                
+                # Check if app is running
+                az containerapp show \
+                  --name $(containerAppName) \
+                  --resource-group $(resourceGroup) \
+                  --query "properties.runningStatus"
+
+- stage: DeployDev
+  displayName: 'Deploy to Development'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+  jobs:
+  - deployment: DeployDev
+    displayName: 'Deploy to Dev'
+    environment: 'development'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            displayName: 'Update Dev Container App'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Update development container app
+                az containerapp update \
+                  --name $(containerAppName)-dev \
+                  --resource-group $(resourceGroup)-dev \
+                  --image $(containerRegistry)/$(imageRepository):$(tag)

@@ -1,0 +1,83 @@
+services:
+  - type: web
+    name: ipc-justice-aid-backend
+    runtime: python
+    buildCommand: "./render-build.sh"
+    startCommand: "gunicorn ipc_justice_aid_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --timeout 300"
+    plan: starter
+    healthCheckPath: /legal/health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: DEBUG
+        value: "False"
+      - key: ANALYSIS_ENVIRONMENT
+        value: "auto"  # Will auto-detect and use Gemini for production, Ollama for local
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ipc-justice-aid-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ipc-justice-aid-redis
+          property: connectionString
+      # Google Gemini Configuration (Primary for production)
+      - key: GEMINI_API_KEY
+        sync: false  # You'll need to set this manually
+      - key: GEMINI_MODEL
+        value: "gemini-1.5-flash"
+      - key: GEMINI_TIMEOUT
+        value: "60"
+      - key: GEMINI_MAX_RETRIES
+        value: "3"
+      # Email Configuration (Optional - configure if needed)
+      - key: EMAIL_HOST
+        value: "smtp.gmail.com"
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        value: "noreply@ipc-justice-aid.com"
+      - key: ADMIN_EMAIL
+        value: "admin@ipc-justice-aid.com"
+      # Frontend URL and CORS Configuration
+      - key: FRONTEND_URL
+        value: "https://juris-lead.vercel.app"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://juris-lead.vercel.app,http://localhost:3000,http://127.0.0.1:3000"
+      # Payment Gateway Configuration (Optional)
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      # Google OAuth (Optional)
+      - key: GOOGLE_OAUTH_CLIENT_ID
+        sync: false
+      - key: GOOGLE_OAUTH_CLIENT_SECRET
+        sync: false
+
+  - type: redis
+    name: ipc-justice-aid-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+databases:
+  - name: ipc-justice-aid-db
+    databaseName: ipc_justice_aid
+    user: ipc_user
+    plan: starter

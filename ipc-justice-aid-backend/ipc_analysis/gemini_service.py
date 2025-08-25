@@ -9,31 +9,28 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class HuggingFaceService:
-    """Service class to interact with Hugging Face Inference API for IPC analysis"""
+class GeminiService:
+    """Service class to interact with Google Gemini API for IPC analysis"""
     
     def __init__(self):
-        self.api_token = getattr(settings, 'HUGGINGFACE_API_TOKEN', None)
-        # Use a better model for legal analysis - Mistral is better for instruction following
-        self.model_id = getattr(settings, 'HUGGINGFACE_MODEL_ID', 'mistralai/Mistral-7B-Instruct-v0.2')
-        self.api_url = f"https://api-inference.huggingface.co/models/{self.model_id}"
-        self.timeout = getattr(settings, 'HUGGINGFACE_TIMEOUT', 60)
-        self.max_retries = getattr(settings, 'HUGGINGFACE_MAX_RETRIES', 3)
+        self.api_key = getattr(settings, 'GEMINI_API_KEY', None)
+        self.model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-1.5-flash')  # or 'gemini-1.5-pro'
+        self.api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent"
+        self.timeout = getattr(settings, 'GEMINI_TIMEOUT', 60)
+        self.max_retries = getattr(settings, 'GEMINI_MAX_RETRIES', 3)
         
-        # Alternative models for legal analysis:
-        # 1. mistralai/Mistral-7B-Instruct-v0.1 - Good for instruction following
-        # 2. microsoft/DialoGPT-medium - Conversational AI
-        # 3. google/flan-t5-large - Good for structured tasks
-        # 4. nlpaueb/legal-bert-base-uncased - Legal domain specific (but smaller)
+        # Available Gemini models:
+        # - gemini-1.5-flash: Faster, good for most tasks
+        # - gemini-1.5-pro: More capable, better for complex analysis
+        # - gemini-1.0-pro: Earlier version, stable
         
         self.headers = {
-            "Authorization": f"Bearer {self.api_token}",
             "Content-Type": "application/json"
         }
     
     def analyze_case(self, case_description: str) -> Dict[str, Any]:
         """
-        Send case description to Hugging Face model and get IPC analysis
+        Send case description to Gemini API and get IPC analysis
         
         Args:
             case_description (str): The legal case description
@@ -41,19 +38,19 @@ class HuggingFaceService:
         Returns:
             Dict containing the analysis response and metadata
         """
-        if not self.api_token:
-            return self._get_error_response("Hugging Face API token not configured")
+        if not self.api_key:
+            return self._get_error_response("Gemini API key not configured")
         
         prompt = self._create_legal_prompt(case_description)
         start_time = time.time()
         
         try:
-            response = self._call_huggingface_api(prompt)
+            response = self._call_gemini_api(prompt)
             end_time = time.time()
             
             response_time_ms = int((end_time - start_time) * 1000)
             
-            # Parse the response from Hugging Face
+            # Parse the response from Gemini
             analysis_result = self._parse_legal_response(response, case_description)
             
             return {
@@ -61,21 +58,21 @@ class HuggingFaceService:
                 'analysis': analysis_result,
                 'response_time_ms': response_time_ms,
                 'raw_response': response,
-                'model_used': self.model_id,
+                'model_used': self.model_name,
                 'error': None
             }
             
         except Exception as e:
             end_time = time.time()
             response_time_ms = int((end_time - start_time) * 1000)
-            logger.error(f"Hugging Face API error: {str(e)}")
+            logger.error(f"Gemini API error: {str(e)}")
             
             return {
                 'success': False,
                 'analysis': None,
                 'response_time_ms': response_time_ms,
                 'raw_response': None,
-                'model_used': self.model_id,
+                'model_used': self.model_name,
                 'error': str(e)
             }
     
@@ -100,61 +97,53 @@ Please provide the response in the following JSON format:
 """
         return prompt
     
-    def _call_huggingface_api(self, prompt: str) -> str:
-        """Make the actual API call to Hugging Face Inference API"""
-        # Different parameters based on model type
-        if "mistral" in self.model_id.lower():
-            # Mistral models work better with these parameters
-            payload = {
-                "inputs": prompt,
-                "parameters": {
-                    "max_new_tokens": 512,
-                    "temperature": 0.3,
-                    "do_sample": True,
-                    "repetition_penalty": 1.1
-                },
-                "options": {
-                    "wait_for_model": True,
-                    "use_cache": False
+    def _call_gemini_api(self, prompt: str) -> str:
+        """Make the actual API call to Gemini API"""
+        # Gemini API request format
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": prompt
+                        }
+                    ]
                 }
-            }
-        elif "bart" in self.model_id.lower():
-            # BART is a summarization model, adapt for legal analysis
-            # Create a summarization-style prompt for BART
-            bart_prompt = f"Summarize the legal case and identify applicable IPC sections: {prompt}"
-            payload = {
-                "inputs": bart_prompt,
-                "parameters": {
-                    "max_length": 512,
-                    "min_length": 100,
-                    "do_sample": False,  # More deterministic for legal analysis
-                    "early_stopping": True
+            ],
+            "generationConfig": {
+                "temperature": 0.3,  # Low temperature for consistent legal analysis
+                "topK": 40,
+                "topP": 0.95,
+                "maxOutputTokens": 1024,
+                "stopSequences": []
+            },
+            "safetySettings": [
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
                 },
-                "options": {
-                    "wait_for_model": True,
-                    "use_cache": False
-                }
-            }
-        else:
-            # Default parameters for other models
-            payload = {
-                "inputs": prompt,
-                "parameters": {
-                    "max_new_tokens": 512,
-                    "temperature": 0.3,
-                    "do_sample": True,
-                    "repetition_penalty": 1.1
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
                 },
-                "options": {
-                    "wait_for_model": True,
-                    "use_cache": False
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_MEDIUM_AND_ABOVE"
                 }
-            }
+            ]
+        }
+        
+        # Add API key to URL
+        url_with_key = f"{self.api_url}?key={self.api_key}"
         
         for attempt in range(self.max_retries):
             try:
                 response = requests.post(
-                    self.api_url,
+                    url_with_key,
                     headers=self.headers,
                     json=payload,
                     timeout=self.timeout
@@ -163,26 +152,38 @@ Please provide the response in the following JSON format:
                 if response.status_code == 200:
                     result = response.json()
                     
-                    # Handle different response formats
-                    if isinstance(result, list) and len(result) > 0:
-                        return result[0].get('generated_text', str(result))
-                    elif isinstance(result, dict):
-                        return result.get('generated_text', str(result))
-                    else:
-                        return str(result)
+                    # Extract text from Gemini response format
+                    if 'candidates' in result and len(result['candidates']) > 0:
+                        candidate = result['candidates'][0]
+                        if 'content' in candidate and 'parts' in candidate['content']:
+                            parts = candidate['content']['parts']
+                            if len(parts) > 0 and 'text' in parts[0]:
+                                return parts[0]['text']
+                    
+                    # Fallback to raw response if structure is unexpected
+                    return str(result)
                 
-                elif response.status_code == 503:
-                    # Model loading, wait and retry
+                elif response.status_code == 429:
+                    # Rate limit, wait and retry
                     if attempt < self.max_retries - 1:
-                        wait_time = 2 ** attempt  # Exponential backoff
-                        logger.info(f"Model loading, waiting {wait_time}s before retry...")
+                        wait_time = (2 ** attempt) * 2  # Exponential backoff starting at 2s
+                        logger.info(f"Rate limited, waiting {wait_time}s before retry...")
                         time.sleep(wait_time)
                         continue
                     else:
-                        raise Exception("Model is still loading after multiple retries")
+                        raise Exception("Rate limit exceeded after multiple retries")
+                
+                elif response.status_code == 400:
+                    # Bad request - probably a prompt issue
+                    error_details = response.json() if response.content else {}
+                    raise Exception(f"Bad request: {error_details}")
+                
+                elif response.status_code == 403:
+                    # Permission denied - API key issue
+                    raise Exception("Permission denied - check your Gemini API key")
                 
                 else:
-                    raise Exception(f"Hugging Face API error: {response.status_code} - {response.text}")
+                    raise Exception(f"Gemini API error: {response.status_code} - {response.text}")
                     
             except requests.exceptions.Timeout:
                 if attempt < self.max_retries - 1:
@@ -199,7 +200,7 @@ Please provide the response in the following JSON format:
                 else:
                     raise Exception(f"Request failed after multiple retries: {str(e)}")
         
-        raise Exception("Failed to get response from Hugging Face API")
+        raise Exception("Failed to get response from Gemini API")
     
     def _parse_legal_response(self, response_text: str, original_case: str) -> Dict[str, Any]:
         """Parse the response using the same logic as Ollama service"""
@@ -276,50 +277,61 @@ Please provide the response in the following JSON format:
             },
             'response_time_ms': 0,
             'raw_response': None,
-            'model_used': self.model_id,
+            'model_used': self.model_name,
             'error': error_message
         }
     
     def health_check(self) -> Dict[str, Any]:
-        """Check if Hugging Face service is available"""
-        if not self.api_token:
+        """Check if Gemini service is available"""
+        if not self.api_key:
             return {
                 'status': 'unhealthy',
-                'error': 'API token not configured',
-                'service': 'huggingface'
+                'error': 'API key not configured',
+                'service': 'gemini'
             }
         
         try:
             # Simple test request
             test_payload = {
-                "inputs": "Test connection",
-                "parameters": {"max_new_tokens": 10}
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": "Say 'Hello' to test the connection."
+                            }
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "maxOutputTokens": 10
+                }
             }
             
+            url_with_key = f"{self.api_url}?key={self.api_key}"
+            
             response = requests.post(
-                self.api_url,
+                url_with_key,
                 headers=self.headers,
                 json=test_payload,
                 timeout=10
             )
             
-            if response.status_code in [200, 503]:  # 503 means model loading
+            if response.status_code == 200:
                 return {
                     'status': 'healthy',
-                    'model_id': self.model_id,
-                    'service': 'huggingface',
-                    'note': 'Model loading' if response.status_code == 503 else 'Ready'
+                    'model_name': self.model_name,
+                    'service': 'gemini'
                 }
             else:
                 return {
                     'status': 'unhealthy',
                     'error': f"HTTP {response.status_code}",
-                    'service': 'huggingface'
+                    'service': 'gemini'
                 }
                 
         except Exception as e:
             return {
                 'status': 'unhealthy',
                 'error': str(e),
-                'service': 'huggingface'
+                'service': 'gemini'
             }

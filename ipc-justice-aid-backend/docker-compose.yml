@@ -36,16 +36,18 @@ services:
     volumes:
       - ollama_data:/root/.ollama
       - /home/anupam/.ollama:/host_ollama:ro
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     networks:
       - ipc_justice_aid_network
-    # Uncomment the deploy section if you have NVIDIA GPU support
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
 
   web:
     build: .
@@ -56,7 +58,7 @@ services:
       - static_volume:/app/static
       - media_volume:/app/media
     ports:
-      - "8001:8000"
+      - "0.0.0.0:8001:8000"
     depends_on:
       - db
       - redis
@@ -137,15 +139,6 @@ services:
       - .env
     networks:
       - ipc_justice_aid_network
- 
-    # Uncomment the deploy section if you have NVIDIA GPU support
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
 
 volumes:
   postgres_data:

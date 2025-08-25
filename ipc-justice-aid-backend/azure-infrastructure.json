@@ -1,0 +1,223 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appName": {
+            "type": "string",
+            "defaultValue": "ipc-justice-aid",
+            "metadata": {
+                "description": "Base name for all resources"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources"
+            }
+        },
+        "postgresAdminLogin": {
+            "type": "string",
+            "defaultValue": "ipc_admin",
+            "metadata": {
+                "description": "PostgreSQL administrator login"
+            }
+        },
+        "postgresAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "PostgreSQL administrator password"
+            }
+        },
+        "containerImageTag": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "Container image tag"
+            }
+        }
+    },
+    "variables": {
+        "containerRegistryName": "[concat(parameters('appName'), 'acr', uniqueString(resourceGroup().id))]",
+        "postgresServerName": "[concat(parameters('appName'), '-postgres-', uniqueString(resourceGroup().id))]",
+        "redisCacheName": "[concat(parameters('appName'), '-redis-', uniqueString(resourceGroup().id))]",
+        "containerAppEnvName": "[concat(parameters('appName'), '-env')]",
+        "containerAppName": "[concat(parameters('appName'), '-app')]",
+        "logAnalyticsName": "[concat(parameters('appName'), '-logs')]",
+        "storageAccountName": "[concat(replace(parameters('appName'), '-', ''), 'storage', uniqueString(resourceGroup().id))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "2021-09-01",
+            "name": "[variables('containerRegistryName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "adminUserEnabled": true
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+            "apiVersion": "2021-06-01",
+            "name": "[variables('postgresServerName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_B1ms",
+                "tier": "Burstable"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('postgresAdminLogin')]",
+                "administratorLoginPassword": "[parameters('postgresAdminPassword')]",
+                "version": "14",
+                "storage": {
+                    "storageSizeGB": 32
+                },
+                "authConfig": {
+                    "activeDirectoryAuth": "Disabled",
+                    "passwordAuth": "Enabled"
+                },
+                "highAvailability": {
+                    "mode": "Disabled"
+                },
+                "backup": {
+                    "backupRetentionDays": 7,
+                    "geoRedundantBackup": "Disabled"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/flexibleServers/databases",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(variables('postgresServerName'), '/ipc_justice_aid')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))]"
+            ],
+            "properties": {
+                "charset": "utf8",
+                "collation": "en_US.utf8"
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/flexibleServers/firewallRules",
+            "apiVersion": "2021-06-01",
+            "name": "[concat(variables('postgresServerName'), '/AllowAzureServices')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('postgresServerName'))]"
+            ],
+            "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+            }
+        },
+        {
+            "type": "Microsoft.Cache/Redis",
+            "apiVersion": "2021-06-01",
+            "name": "[variables('redisCacheName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sku": {
+                    "name": "Basic",
+                    "family": "C",
+                    "capacity": 0
+                },
+                "enableNonSslPort": false,
+                "minimumTlsVersion": "1.2",
+                "redisConfiguration": {
+                    "maxclients": "256"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2021-08-01",
+            "name": "[variables('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "accessTier": "Hot",
+                "supportsHttpsTrafficOnly": true,
+                "minimumTlsVersion": "TLS1_2"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2021-08-01",
+            "name": "[concat(variables('storageAccountName'), '/default/media')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "publicAccess": "Blob"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2021-08-01",
+            "name": "[concat(variables('storageAccountName'), '/default/static')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "publicAccess": "Blob"
+            }
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "2021-06-01",
+            "name": "[variables('logAnalyticsName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "retentionInDays": 30
+            }
+        },
+        {
+            "type": "Microsoft.App/managedEnvironments",
+            "apiVersion": "2022-03-01",
+            "name": "[variables('containerAppEnvName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName'))]"
+            ],
+            "properties": {
+                "appLogsConfiguration": {
+                    "destination": "log-analytics",
+                    "logAnalyticsConfiguration": {
+                        "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName'))).customerId]",
+                        "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsName')), '2021-06-01').primarySharedKey]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "containerRegistryLoginServer": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('containerRegistryName'))).loginServer]"
+        },
+        "postgresServerName": {
+            "type": "string",
+            "value": "[variables('postgresServerName')]"
+        },
+        "redisCacheName": {
+            "type": "string",
+            "value": "[variables('redisCacheName')]"
+        },
+        "storageAccountName": {
+            "type": "string",
+            "value": "[variables('storageAccountName')]"
+        },
+        "containerAppEnvironmentName": {
+            "type": "string",
+            "value": "[variables('containerAppEnvName')]"
+        }
+    }
+}

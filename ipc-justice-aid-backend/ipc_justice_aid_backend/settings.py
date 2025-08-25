@@ -36,6 +36,25 @@ if AZURE_APP_SERVICE:
         '.azurewebsites.net'
     ])
 
+# Render specific settings
+RENDER = os.getenv('RENDER', 'False').lower() == 'true' or bool(os.getenv('RENDER_SERVICE_NAME'))
+
+if RENDER:
+    # Add Render domain to allowed hosts
+    RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+    if RENDER_EXTERNAL_HOSTNAME:
+        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    
+    # Always add the Render domain
+    ALLOWED_HOSTS.extend([
+        '.onrender.com',
+        '0.0.0.0'
+    ])
+    
+    # Ensure HTTPS in production
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+
 # Application definition
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -112,17 +131,17 @@ if DATABASE_URL:
         'default': dj_database_url.parse(DATABASE_URL)
     }
 else:
-    # Local Development - Use Docker PostgreSQL with individual variables
+    # Local Development or Azure App Service - Use individual environment variables
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DATABASE_NAME'),
-            'USER': config('DATABASE_USER'),
-            'PASSWORD': config('DATABASE_PASSWORD'),
-            'HOST': config('DATABASE_HOST', default='localhost'),
-            'PORT': config('DATABASE_PORT', default='5432'),
+            'NAME': os.getenv('DATABASE_NAME') or config('DATABASE_NAME'),
+            'USER': os.getenv('DATABASE_USER') or config('DATABASE_USER'),
+            'PASSWORD': os.getenv('DATABASE_PASSWORD') or config('DATABASE_PASSWORD'),
+            'HOST': os.getenv('DATABASE_HOST') or config('DATABASE_HOST', default='localhost'),
+            'PORT': os.getenv('DATABASE_PORT') or config('DATABASE_PORT', default='5432'),
             'OPTIONS': {
-                'sslmode': config('DATABASE_SSL_MODE', default='prefer'),
+                'sslmode': os.getenv('DATABASE_SSL_MODE') or config('DATABASE_SSL_MODE', default='prefer'),
             } if not DEBUG else {},
         }
     }
@@ -263,12 +282,13 @@ CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='').split(',') if 
 ]
 
 # Add Azure domain to CORS if in production
-if AZURE_APP_SERVICE and config('AZURE_DOMAIN', default=''):
-    azure_domain = config('AZURE_DOMAIN')
-    CORS_ALLOWED_ORIGINS.extend([
-        f"https://{azure_domain}.azurewebsites.net",
-        f"https://{azure_domain}",
-    ])
+if AZURE_APP_SERVICE:
+    azure_domain = os.getenv('AZURE_DOMAIN') or config('AZURE_DOMAIN', default='')
+    if azure_domain:
+        CORS_ALLOWED_ORIGINS.extend([
+            f"https://{azure_domain}.azurewebsites.net",
+            f"https://{azure_domain}",
+        ])
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only for development
@@ -281,23 +301,30 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_NAME = 'csrftoken'
 
 # CSRF Trusted Origins - Production ready
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',') if not DEBUG else [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://10.0.2.2:8000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://192.168.1.6:8000",
-    "http://192.168.1.6:3000",
-]
+csrf_trusted_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if csrf_trusted_origins_env:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_trusted_origins_env.split(',')]
+elif not DEBUG:
+    CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',')
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://10.0.2.2:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://192.168.1.6:8000",
+        "http://192.168.1.6:3000",
+    ]
 
 # Add Azure domain to CSRF trusted origins if in production
-if AZURE_APP_SERVICE and config('AZURE_DOMAIN', default=''):
-    azure_domain = config('AZURE_DOMAIN')
-    CSRF_TRUSTED_ORIGINS.extend([
-        f"https://{azure_domain}.azurewebsites.net",
-        f"https://{azure_domain}",
-    ])
+if AZURE_APP_SERVICE:
+    azure_domain = os.getenv('AZURE_DOMAIN') or config('AZURE_DOMAIN', default='')
+    if azure_domain:
+        CSRF_TRUSTED_ORIGINS.extend([
+            f"https://{azure_domain}.azurewebsites.net",
+            f"https://{azure_domain}",
+        ])
 
 # Additional CORS settings for mobile apps
 CORS_ALLOW_HEADERS = [
@@ -430,23 +457,25 @@ OLLAMA_MODEL_NAME = OLLAMA_SETTINGS['MODEL_NAME']
 OLLAMA_TIMEOUT = OLLAMA_SETTINGS['TIMEOUT']
 OLLAMA_MAX_RETRIES = OLLAMA_SETTINGS['MAX_RETRIES']
 
-# Hugging Face settings for production deployment
-HUGGINGFACE_SETTINGS = {
-    'API_TOKEN': config('HUGGINGFACE_API_TOKEN', default=None),
-    'MODEL_ID': config('HUGGINGFACE_MODEL_ID', default='mistralai/Mistral-7B-Instruct-v0.1'),
-    'TIMEOUT': config('HUGGINGFACE_TIMEOUT', default=60, cast=int),
-    'MAX_RETRIES': config('HUGGINGFACE_MAX_RETRIES', default=3, cast=int),
+# Google Gemini settings for production deployment
+GEMINI_SETTINGS = {
+    'API_KEY': config('GEMINI_API_KEY', default=None),
+    'MODEL': config('GEMINI_MODEL', default='gemini-1.5-flash'),
+    'TIMEOUT': config('GEMINI_TIMEOUT', default=60, cast=int),
+    'MAX_RETRIES': config('GEMINI_MAX_RETRIES', default=3, cast=int),
 }
 
-# Add Hugging Face settings as direct attributes for easier access
-HUGGINGFACE_API_TOKEN = HUGGINGFACE_SETTINGS['API_TOKEN']
-HUGGINGFACE_MODEL_ID = HUGGINGFACE_SETTINGS['MODEL_ID']
-HUGGINGFACE_TIMEOUT = HUGGINGFACE_SETTINGS['TIMEOUT']
-HUGGINGFACE_MAX_RETRIES = HUGGINGFACE_SETTINGS['MAX_RETRIES']
+# Add Gemini settings as direct attributes for easier access
+GEMINI_API_KEY = GEMINI_SETTINGS['API_KEY']
+GEMINI_MODEL = GEMINI_SETTINGS['MODEL']
+GEMINI_TIMEOUT = GEMINI_SETTINGS['TIMEOUT']
+GEMINI_MAX_RETRIES = GEMINI_SETTINGS['MAX_RETRIES']
 
 # Analysis service configuration
-# Options: 'auto', 'ollama', 'huggingface'
-# 'auto' will choose based on environment (dev=ollama, prod=huggingface)
+# Options: 'auto', 'ollama', 'gemini'
+# 'auto' will choose based on environment and API key availability:
+#   - Production with Gemini key: gemini
+#   - Development: ollama
 ANALYSIS_ENVIRONMENT = config('ANALYSIS_ENVIRONMENT', default='auto')
 
 # Legal analysis settings

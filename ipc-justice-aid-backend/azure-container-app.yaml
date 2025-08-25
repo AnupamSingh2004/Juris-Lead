@@ -1,0 +1,138 @@
+apiVersion: 2022-03-01
+properties:
+  configuration:
+    secrets:
+      - name: "secret-key"
+        value: ""  # Set in Azure Portal
+      - name: "database-password"
+        value: ""  # Set in Azure Portal
+      - name: "redis-url"
+        value: ""  # Set in Azure Portal
+      - name: "google-oauth2-client-secret"
+        value: ""  # Set in Azure Portal
+    registries:
+      - server: "your-registry.azurecr.io"
+        username: ""  # Set in Azure Portal
+        passwordSecretRef: "registry-password"
+    ingress:
+      external: true
+      targetPort: 8000
+      transport: auto
+      traffic:
+        - weight: 100
+          latestRevision: true
+  template:
+    containers:
+      - image: "your-registry.azurecr.io/ipc-justice-aid:latest"
+        name: "ipc-justice-aid-web"
+        env:
+          - name: "DEBUG"
+            value: "False"
+          - name: "SECRET_KEY"
+            secretRef: "secret-key"
+          - name: "AZURE_APP_SERVICE"
+            value: "True"
+          - name: "DATABASE_NAME"
+            value: "ipc_justice_aid"
+          - name: "DATABASE_USER"
+            value: "ipc_user"
+          - name: "DATABASE_PASSWORD"
+            secretRef: "database-password"
+          - name: "DATABASE_HOST"
+            value: "your-postgres-server.postgres.database.azure.com"
+          - name: "DATABASE_PORT"
+            value: "5432"
+          - name: "DATABASE_SSL_MODE"
+            value: "require"
+          - name: "REDIS_URL"
+            secretRef: "redis-url"
+          - name: "CELERY_BROKER_URL"
+            secretRef: "redis-url"
+          - name: "CELERY_RESULT_BACKEND"
+            secretRef: "redis-url"
+          - name: "ALLOWED_HOSTS"
+            value: "your-app-name.azurewebsites.net,.azurewebsites.net"
+          - name: "CORS_ALLOWED_ORIGINS"
+            value: "https://your-frontend-domain.com"
+          - name: "CSRF_TRUSTED_ORIGINS"
+            value: "https://your-frontend-domain.com,https://your-app-name.azurewebsites.net"
+          - name: "GOOGLE_OAUTH2_CLIENT_ID"
+            value: "your-google-client-id"
+          - name: "GOOGLE_OAUTH2_CLIENT_SECRET"
+            secretRef: "google-oauth2-client-secret"
+        resources:
+          cpu: 1.0
+          memory: "2Gi"
+        volumeMounts:
+          - mountPath: "/app/media"
+            volumeName: "media-volume"
+      - image: "your-registry.azurecr.io/ipc-justice-aid:latest"
+        name: "ipc-justice-aid-celery-worker"
+        command: ["celery"]
+        args: ["-A", "ipc_justice_aid_backend", "worker", "--loglevel=info", "--concurrency=2"]
+        env:
+          - name: "DEBUG"
+            value: "False"
+          - name: "SECRET_KEY"
+            secretRef: "secret-key"
+          - name: "DATABASE_NAME"
+            value: "ipc_justice_aid"
+          - name: "DATABASE_USER"
+            value: "ipc_user"
+          - name: "DATABASE_PASSWORD"
+            secretRef: "database-password"
+          - name: "DATABASE_HOST"
+            value: "your-postgres-server.postgres.database.azure.com"
+          - name: "DATABASE_PORT"
+            value: "5432"
+          - name: "DATABASE_SSL_MODE"
+            value: "require"
+          - name: "REDIS_URL"
+            secretRef: "redis-url"
+          - name: "CELERY_BROKER_URL"
+            secretRef: "redis-url"
+          - name: "CELERY_RESULT_BACKEND"
+            secretRef: "redis-url"
+        resources:
+          cpu: 0.5
+          memory: "1Gi"
+        volumeMounts:
+          - mountPath: "/app/media"
+            volumeName: "media-volume"
+      - image: "your-registry.azurecr.io/ipc-justice-aid:latest"
+        name: "ipc-justice-aid-celery-beat"
+        command: ["celery"]
+        args: ["-A", "ipc_justice_aid_backend", "beat", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+        env:
+          - name: "DEBUG"
+            value: "False"
+          - name: "SECRET_KEY"
+            secretRef: "secret-key"
+          - name: "DATABASE_NAME"
+            value: "ipc_justice_aid"
+          - name: "DATABASE_USER"
+            value: "ipc_user"
+          - name: "DATABASE_PASSWORD"
+            secretRef: "database-password"
+          - name: "DATABASE_HOST"
+            value: "your-postgres-server.postgres.database.azure.com"
+          - name: "DATABASE_PORT"
+            value: "5432"
+          - name: "DATABASE_SSL_MODE"
+            value: "require"
+          - name: "REDIS_URL"
+            secretRef: "redis-url"
+          - name: "CELERY_BROKER_URL"
+            secretRef: "redis-url"
+          - name: "CELERY_RESULT_BACKEND"
+            secretRef: "redis-url"
+        resources:
+          cpu: 0.25
+          memory: "0.5Gi"
+    scale:
+      minReplicas: 1
+      maxReplicas: 5
+    volumes:
+      - name: "media-volume"
+        storageType: AzureFile
+        storageName: "media-storage"
