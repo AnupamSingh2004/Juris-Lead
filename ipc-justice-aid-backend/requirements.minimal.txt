@@ -1,0 +1,41 @@
+# Minimal requirements for Render deployment - Python 3.13 compatible
+# Core Django Framework
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+djangorestframework-simplejwt==5.3.0
+
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# Cache
+redis==5.0.1
+django-redis==5.4.0
+
+# Configuration
+python-decouple==3.8
+
+# Authentication & Google Services
+google-auth==2.23.4
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+
+# HTTP Requests
+requests==2.31.0
+
+# AI Services - Google Gemini
+google-generativeai==0.3.2
+
+# Security
+cryptography==41.0.7
+pyjwt==2.8.0
+
+# Production Server
+gunicorn==21.2.0
+
+# Static Files
+whitenoise==6.6.0
+
+# Utilities (minimal)
+django-extensions==3.2.3
