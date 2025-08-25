@@ -1,71 +1,60 @@
-# Render Production Requirements
-# Optimized for production deployment without Ollama dependencies
-
-# Core Django Framework
 Django==4.2.7
 djangorestframework==3.14.0
 django-cors-headers==4.3.1
 django-oauth-toolkit==1.7.1
 django-allauth==0.57.0
 djangorestframework-simplejwt==5.3.0
-
-# Database
 psycopg2-binary==2.9.9
 dj-database-url==2.1.0
-
-# Cache and Background Tasks
 redis==5.0.1
 django-redis==5.4.0
-celery==5.3.4
-django-celery-beat==2.5.0
-django-celery-results==2.5.1
-
-# Configuration
 python-decouple==3.8
-
-# Authentication
 google-auth==2.23.4
 google-auth-oauthlib==1.1.0
 google-auth-httplib2==0.1.1
-
-# HTTP Requests
 requests==2.31.0
-
-# AI Services
-google-generativeai==0.3.2
-
-# Utilities
 django-extensions==3.2.3
 django-ratelimit==4.1.0
 cryptography==41.0.7
 pyjwt==2.8.0
-Pillow==10.3.0
+Pillow==10.1.0
 
-# PDF Generation
+# Celery for background tasks
+celery==5.3.4
+django-celery-beat==2.5.0
+django-celery-results==2.5.1
+
+# PDF generation
 reportlab==4.0.7
 WeasyPrint==60.2
 PyPDF2==3.0.1
 
-# OCR and Image Processing (Optional - comment out if not needed)
-# pytesseract==0.3.10
-# opencv-python==4.8.1.78
-# numpy==1.24.3
+# OCR and Image Processing
+pytesseract==0.3.10
+opencv-python==4.8.1.78
+numpy==1.24.3
 
-# AI/ML - Hugging Face API (Production)
-huggingface-hub==0.19.4
+# AI/ML models for production (Hugging Face API - no local downloads)
+google-generativeai==0.3.2
 
-# Payment Processing (Optional - comment out if not needed)
+# Payment processing
 razorpay==1.3.0
 stripe==7.8.0
 
-# Production Server
+# Production and Azure specific packages
 gunicorn==21.2.0
-
-# Static Files
 whitenoise==6.6.0
-
-# Cloud Storage (Optional - for file uploads)
-django-storages==1.14.2
-
-# Monitoring and Error Tracking (Optional)
+django-storages[azure]==1.14.2
+azure-storage-blob==12.19.0
 sentry-sdk[django]==1.38.0
+
+# Development and testing
+pytest-django>=4.5.0
+pytest>=7.0.0
+factory-boy>=3.2.0
+coverage>=7.0.0
+
+# Additional utilities
+python-dateutil>=2.8.0
+pytz>=2023.3
+uuid>=1.30
