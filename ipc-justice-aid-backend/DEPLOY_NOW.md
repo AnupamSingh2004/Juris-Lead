@@ -7,14 +7,12 @@
 ### 1. Required - Database Connection
 ```
 Key: DATABASE_URL
-Value: postgresql://postgres.ecmincmghrpvritrrxpy:Anupam1%2F2%233@aws-1-ap-south-1.pooler.supabase.com:6543/postgres
-```
+
 
 ### 2. Required - AI Service  
 ```
 Key: GEMINI_API_KEY
-Value: AIzaSyD_AmPU4hv9h4BnPBCGf_DRc1Cz_eH7ki4
-```
+
 
 ## 📝 Steps:
 1. Go to Render Dashboard
