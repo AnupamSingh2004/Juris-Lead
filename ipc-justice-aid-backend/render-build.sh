@@ -10,7 +10,7 @@ export PYTHON_VERSION="3.11.9"
 
 # Install Python dependencies
 echo "📦 Installing Python dependencies..."
-pip install --upgrade pip
+pip install --upgrade pip setuptools wheel
 
 # Use optimized requirements for Render if available, otherwise use default
 if [ -f "requirements.render.txt" ]; then

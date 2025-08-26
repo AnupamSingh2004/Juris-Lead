@@ -22,6 +22,7 @@ django-celery-results==2.5.1
 
 # Configuration
 python-decouple==3.8
+setuptools==69.5.1
 
 # Authentication & Google Services
 google-auth==2.23.4
