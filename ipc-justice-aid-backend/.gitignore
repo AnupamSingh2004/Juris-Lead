@@ -15,6 +15,9 @@ RAILWAY_DEPLOYMENT_GUIDE.md
 
 DEPLOYMENT_CHECKLIST.md
 .env.docker
+
+# Render credentials (local reference only)
+RENDER_CREDENTIALS.txt
 # Distribution / packaging
 .Python
 build/

@@ -5,6 +5,9 @@ set -o errexit  # Exit on error
 
 echo "🚀 Starting Render deployment build..."
 
+# Force Python 3.11
+export PYTHON_VERSION="3.11.9"
+
 # Install Python dependencies
 echo "📦 Installing Python dependencies..."
 pip install --upgrade pip
@@ -21,6 +24,10 @@ fi
 # Set environment for production
 export DEBUG=False
 export ANALYSIS_ENVIRONMENT=gemini
+export DATABASE_NAME=postgres
+export DATABASE_USER=postgres.ecmincmghrpvritrrxpy
+export DATABASE_HOST=aws-1-ap-south-1.pooler.supabase.com
+export DATABASE_PORT=6543
 
 # Collect static files for Django
 echo "📁 Collecting static files..."

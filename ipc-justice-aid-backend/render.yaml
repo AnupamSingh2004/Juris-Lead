@@ -18,9 +18,7 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: DATABASE_URL
-        fromDatabase:
-          name: ipc-justice-aid-db
-          property: connectionString
+        sync: false  # Set this manually in Render dashboard
       - key: REDIS_URL
         fromService:
           type: redis
@@ -75,9 +73,3 @@ services:
     plan: starter
     maxmemoryPolicy: allkeys-lru
     ipAllowList: []
-
-databases:
-  - name: ipc-justice-aid-db
-    databaseName: ipc_justice_aid
-    user: ipc_user
-    plan: starter

@@ -135,9 +135,9 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DATABASE_NAME') or config('DATABASE_NAME'),
-            'USER': os.getenv('DATABASE_USER') or config('DATABASE_USER'),
-            'PASSWORD': os.getenv('DATABASE_PASSWORD') or config('DATABASE_PASSWORD'),
+            'NAME': os.getenv('DATABASE_NAME') or config('DATABASE_NAME', default='ipc_justice_aid'),
+            'USER': os.getenv('DATABASE_USER') or config('DATABASE_USER', default='ipc_user'),
+            'PASSWORD': os.getenv('DATABASE_PASSWORD') or config('DATABASE_PASSWORD', default='ipc_password'),
             'HOST': os.getenv('DATABASE_HOST') or config('DATABASE_HOST', default='localhost'),
             'PORT': os.getenv('DATABASE_PORT') or config('DATABASE_PORT', default='5432'),
             'OPTIONS': {
