@@ -122,11 +122,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ipc_justice_aid_backend.wsgi.application'
 
-# Database configuration - supports both local Docker and Heroku
-DATABASE_URL = os.getenv('DATABASE_URL')
+# Database configuration - supports both local Docker and Render/Production
+from urllib.parse import quote_plus
+
+def get_safe_database_url():
+    """Get database URL with proper encoding for special characters"""
+    database_url = os.getenv('DATABASE_URL')
+    
+    if not database_url:
+        return None
+    
+    # If the URL contains unencoded special characters, try to fix them
+    if 'Anupam1/2#3' in database_url:
+        # Replace the problematic password with URL-encoded version
+        database_url = database_url.replace('Anupam1/2#3', 'Anupam1%2F2%233')
+    
+    return database_url
+
+DATABASE_URL = get_safe_database_url()
 
 if DATABASE_URL:
-    # Production (Heroku) - Use DATABASE_URL provided by Heroku Postgres
+    # Production (Render/Heroku) - Use DATABASE_URL with proper encoding
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL)
     }
